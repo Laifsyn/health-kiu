@@ -1,0 +1,12 @@
+**/target
+**/Cargo.lock
+
+**/.data
+**/.env
+
+!**/.env.development
+
+
+# Added by cargo
+
+/target

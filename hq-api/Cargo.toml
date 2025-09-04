@@ -1,0 +1,33 @@
+[package]
+name = "hq-api"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib/lib.rs"
+name = "hq_api"
+
+[[bin]]
+name = "hq_api"
+path = "src/main.rs"
+
+[dependencies]
+actix-tls = { version = "3.4.0", features = ["rustls-0_23"] }
+actix-web = { version = "4.11.0", features = ["rustls-0_23"] }
+chrono = { workspace = true, features = ["serde"] }
+color-eyre = { workspace = true }
+dotenvy = { workspace = true }
+fs-err = { workspace = true }
+rcgen = "0.14.3"
+rustls = { version = "0.23.31", features = ["aws-lc-rs"] }
+rustls-pemfile = "2.2.0"
+rustls-pki-types = "1.12.0"
+sea-orm = "1.1.15"
+thiserror = { workspace = true }
+tokio = { version = "1.47.1", features = [
+    "rt-multi-thread",
+    "macros",
+    "parking_lot",
+] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

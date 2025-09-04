@@ -1,0 +1,32 @@
+[workspace]
+members = ["hq-api"]
+
+[workspace.dependencies]
+anyhow = "1.0.97"
+chrono = "0.4.40"
+chrono-tz = { version = "0.10.4", features = ["serde"] }
+color-eyre = "0.6"
+derive_builder = "0.20.2"
+derive_more = { version = "2.0.1", features = [
+    "debug",
+    "display",
+    "error",
+    "from",
+    "into",
+    "deref",
+    "deref_mut",
+    "as_ref",
+] }
+dotenvy = "0.15.7"
+fs-err = "3.1.1"
+itertools = "0.14.0"
+mime = "0.3.17"
+serde = "1.0.219"
+serde-aux = "4.6.0"
+serde_json = "1.0.143"
+serde_with = "3.12.0"
+thiserror = "2.0.16"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "chrono"] }
+ulid = "1.2.0"
+uuid = "1.15.1"
