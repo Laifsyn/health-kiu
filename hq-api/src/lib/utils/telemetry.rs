@@ -1,5 +1,6 @@
 use color_eyre::eyre::eyre;
-use tracing_subscriber::{EnvFilter, fmt::time::ChronoLocal};
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::fmt::time::ChronoLocal;
 
 /// The time format used in log messages or timestamps
 pub const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.3f%:z";
@@ -10,11 +11,7 @@ pub const FILTER_VAR: &str = "APP_RUST_LOG";
 pub const DBG_FILTER_VAR: &str = "APP_RUST_LOG_DEV";
 
 pub fn logger_init() {
-    let env = if cfg!(debug_assertions) {
-        DBG_FILTER_VAR
-    } else {
-        FILTER_VAR
-    };
+    let env = if cfg!(debug_assertions) { DBG_FILTER_VAR } else { FILTER_VAR };
     let mut errs = Option::None;
     let filter = EnvFilter::try_from_env(env).unwrap_or_else(|e| {
         errs = Some(eyre!(

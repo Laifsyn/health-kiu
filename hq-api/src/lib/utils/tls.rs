@@ -1,6 +1,10 @@
 //! TLS utilities for self-generation of certificates.
 //!
-//! On top of requiring predefined enabling features from tls crates, building also requires that relevant dependencies like CMake and NASM (for aws-lc-rs) to be installed on the system.
+//! # NOTE:
+//!
+//! On top of requiring enabling relevant features from tls crates, building
+//! also requires that relevant dependencies like CMake and NASM (for aws-lc-rs
+//! feature) to be installed on the system.
 use std::path::Path;
 
 use actix_tls::accept::rustls_0_23::reexports::ServerConfig;
@@ -23,7 +27,8 @@ pub fn init(data_path: impl AsRef<Path>) -> Result<ServerConfig> {
             r#"Certificate and key files do not exist, generating them in "{}/{{...}}"#,
             data_path.display()
         );
-        fs::create_dir_all(data_path).context("unable to create data directory")?;
+        fs::create_dir_all(data_path)
+            .context("unable to create data directory")?;
         generate(&cert_path, &key_path, None)
             .context("Failed to generate certificate paths")
             .context("Failed to generate signed certificates")?;
@@ -33,7 +38,11 @@ pub fn init(data_path: impl AsRef<Path>) -> Result<ServerConfig> {
 
 /// Generate a self-signed certificate and save it to the certificate and key
 /// files
-fn generate(cert_path: &Path, key_path: &Path, alternate_names: Option<Vec<String>>) -> Result<()> {
+fn generate(
+    cert_path: &Path,
+    key_path: &Path,
+    alternate_names: Option<Vec<String>>,
+) -> Result<()> {
     debug_assert_eq!(cert_path.parent(), key_path.parent());
     warn!(
         "Generating self-signed certificates and saving to {}",
@@ -43,7 +52,8 @@ fn generate(cert_path: &Path, key_path: &Path, alternate_names: Option<Vec<Strin
             .display()
     );
     // FIXME: Should we allot `localhost` as a valid alternative domain name?
-    let alternate_names = alternate_names.unwrap_or_else(|| vec!["localhost".to_string()]);
+    let alternate_names =
+        alternate_names.unwrap_or_else(|| vec!["localhost".to_string()]);
 
     // FIXME: Checking the generated certificate's data, shows that it's valid
     // from 1974 to year 4095
@@ -68,13 +78,16 @@ fn from_file(cert_path: &Path, key_path: &Path) -> Result<ServerConfig> {
     );
 
     // Read certificate chain from PEM file
-    let cert_pem = fs::read_to_string(cert_path).context("Unable to read certificate file")?;
-    let cert_chain: Vec<CertificateDer> = rustls_pemfile::certs(&mut cert_pem.as_bytes())
-        .collect::<Result<Vec<_>, _>>()
-        .context("Unable to parse certificate")?;
+    let cert_pem = fs::read_to_string(cert_path)
+        .context("Unable to read certificate file")?;
+    let cert_chain: Vec<CertificateDer> =
+        rustls_pemfile::certs(&mut cert_pem.as_bytes())
+            .collect::<Result<Vec<_>, _>>()
+            .context("Unable to parse certificate")?;
 
     // Read private key from PEM file
-    let key_pem = fs::read_to_string(key_path).context("Unable to read private key file")?;
+    let key_pem = fs::read_to_string(key_path)
+        .context("Unable to read private key file")?;
     let private_key = rustls_pemfile::private_key(&mut key_pem.as_bytes())
         .context("Unable to read private key")?
         .context("No private key found")?;

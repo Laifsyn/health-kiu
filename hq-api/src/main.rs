@@ -1,12 +1,18 @@
 use actix_web::{App, HttpServer, Responder, get, web};
 use color_eyre::eyre::Context;
 
+mod migrator_main;
+pub use migrator_main::main as run_migrations;
+
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() -> color_eyre::eyre::Result<()> {
     hq_api::init_env();
     hq_api::logger_init();
 
-    let config = hq_api::tls::init("./.data").context("Failed to initialize TLS configuration")?;
+    run_migrations().await.context("Failed to run database migrations")?;
+
+    let config = hq_api::tls::init("./.data")
+        .context("Failed to initialize TLS configuration")?;
 
     HttpServer::new(|| App::new().service(greet))
         .bind_rustls_0_23(("127.0.0.1", 8080), config)
