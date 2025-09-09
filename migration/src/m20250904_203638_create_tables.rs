@@ -1,3 +1,4 @@
+use color_eyre::eyre::Context;
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::schema::*;
 
@@ -40,16 +41,35 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        let mut errs = Vec::new();
+        let mut push = |e| {
+            errs.push(e);
+        };
         manager
-            .drop_table(Table::drop().table(User::Table).to_owned())
+            .drop_table(
+                Table::drop().if_exists().table(User::Table).to_owned(), //
+            )
             .await
-            .inspect_err(|e| tracing::warn!("Failed to drop user table: {}", e))?;
+            .context("Failed to drop `User` table")
+            .map_err(&mut push)
+            .ok();
         manager
-            .drop_table(Table::drop().table(Doctor::Table).to_owned())
+            .drop_table(
+                Table::drop().if_exists().table(Doctor::Table).to_owned(),
+            )
             .await
-            .inspect_err(|e| {
-                tracing::warn!("Failed to drop doctor table: {}", e)
-            })?;
+            .context("Failed to drop `Doctor` table")
+            .map_err(&mut push)
+            .ok();
+        if !errs.is_empty() {
+            tracing::warn!(
+                "Encountered {} errors while running down migrations",
+                errs.len()
+            );
+            for e in errs {
+                tracing::warn!("Error: {}", e);
+            }
+        }
         Ok(())
     }
 }

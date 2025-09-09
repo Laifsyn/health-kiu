@@ -1,14 +1,14 @@
 [package]
-name = "hq-api"
+name = "hk-api"
 version = "0.1.0"
 edition = "2024"
 
 [lib]
 path = "src/lib/lib.rs"
-name = "hq_api"
+name = "hk_api"
 
 [[bin]]
-name = "hq_api"
+name = "hk_api"
 path = "src/main.rs"
 
 [dependencies]

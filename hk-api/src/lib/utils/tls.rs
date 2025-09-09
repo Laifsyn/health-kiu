@@ -19,6 +19,13 @@ use tracing::{info, warn};
 /// loaded. Otherwise, a self-signed certificate is generated and saved to the
 /// data directory.
 pub fn init(data_path: impl AsRef<Path>) -> Result<ServerConfig> {
+    // Initialize the default crypto provider to fix rustls CryptoProvider error
+    rustls::crypto::aws_lc_rs::default_provider().install_default().map_err(
+        |_| {
+            color_eyre::eyre::eyre!("Failed to install default crypto provider")
+        },
+    )?;
+
     let data_path = data_path.as_ref();
     let cert_path = data_path.join("cert.pem");
     let key_path = data_path.join("key.pem");

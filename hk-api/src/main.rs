@@ -6,12 +6,13 @@ pub use migrator_main::main as run_migrations;
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() -> color_eyre::eyre::Result<()> {
-    hq_api::init_env();
-    hq_api::logger_init();
+    hk_api::init_env();
+    hk_api::logger_init();
 
-    run_migrations().await.context("Failed to run database migrations")?;
+    let _db_url =
+        run_migrations().await.context("Failed to run database migrations")?;
 
-    let config = hq_api::tls::init("./.data")
+    let config = hk_api::tls::init("./.data")
         .context("Failed to initialize TLS configuration")?;
 
     HttpServer::new(|| App::new().service(greet))

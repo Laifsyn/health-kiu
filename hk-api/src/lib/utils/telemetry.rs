@@ -6,9 +6,9 @@ use tracing_subscriber::fmt::time::ChronoLocal;
 pub const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.3f%:z";
 
 /// The environment variable used to set the log level filter.
-pub const FILTER_VAR: &str = "APP_RUST_LOG";
+pub const FILTER_VAR: &str = "API_RUST_LOG";
 /// The environment variable used to set the log level filter when debug mode.
-pub const DBG_FILTER_VAR: &str = "APP_RUST_LOG_DEV";
+pub const DBG_FILTER_VAR: &str = "API_RUST_LOG_DEV";
 
 pub fn logger_init() {
     let env = if cfg!(debug_assertions) { DBG_FILTER_VAR } else { FILTER_VAR };
@@ -23,7 +23,7 @@ pub fn logger_init() {
         tracing_subscriber::fmt()
             .with_ansi(true)
             .with_file(true)
-            .with_line_number(true)
+            .with_line_number(false)
             .with_level(true)
             .with_thread_ids(true)
             .with_env_filter(filter)
