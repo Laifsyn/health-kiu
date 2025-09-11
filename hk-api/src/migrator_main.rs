@@ -16,6 +16,14 @@ pub async fn main() -> Result<String> {
     let _span = span!(Level::INFO, "prod-db").entered();
 
     let handle = if !IS_RELEASE {
+        // In non-release builds, we also run migrations on the test database
+        use std::env;
+        assert_ne!(
+            env::var(DB_URL_VAR).unwrap_or(DB_URL_VAR.to_owned()),
+            env::var(TEST_DB_URL_VAR).unwrap_or(TEST_DB_URL_VAR.to_owned()),
+            "{DB_URL_VAR} and {TEST_DB_URL_VAR} variable content must be \
+             different",
+        );
         tracing::info!("Applying migrations to test database.");
         Some(tokio::task::spawn_blocking(run_test_migrations))
     } else {
@@ -33,7 +41,8 @@ pub async fn main() -> Result<String> {
     Ok(db_url)
 }
 
-fn run_test_migrations() -> Result<String> {
+/// Any failure are only logged, but aren't critical for the program flow.
+fn run_test_migrations() -> Option<String> {
     let rt = tokio::runtime::Handle::current();
     rt.block_on(async move {
         let local = LocalSet::new();
@@ -43,12 +52,15 @@ fn run_test_migrations() -> Result<String> {
                 defer!(tracing::info!(
                     "Test database migrations thread finished."
                 ));
-                migrations(TEST_DB_URL_VAR).await.inspect_err(|e| {
-                    tracing::error!(
-                        error = %e,
-                        "Failed to run test database migrations",
-                    );
-                })
+                migrations(TEST_DB_URL_VAR)
+                    .await
+                    .inspect_err(|e| {
+                        tracing::warn!(
+                            error = ?e,
+                            "Failed to run migrations on test database",
+                        );
+                    })
+                    .ok()
             })
             .await
     })
