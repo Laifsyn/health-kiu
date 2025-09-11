@@ -1,31 +1,47 @@
-use actix_web::{App, HttpServer, Responder, get, web};
+use std::net::SocketAddr;
+
+use axum::Router;
+use axum::extract::Path;
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
+use axum::routing::get;
 use color_eyre::eyre::Context;
+use tracing::info;
 
 mod migrator_main;
+use hk_api::tls::get_rustls_config;
 pub use migrator_main::main as run_migrations;
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() -> color_eyre::eyre::Result<()> {
     hk_api::init_env();
     hk_api::logger_init();
+    // Initialize the TLS provider
+    *hk_api::tls::PROVIDER_INIT;
 
     let _db_url =
         run_migrations().await.context("Failed to run database migrations")?;
 
-    let config = hk_api::tls::init("./.data")
-        .context("Failed to initialize TLS configuration")?;
+    let config = get_rustls_config("./.data")
+        .await
+        .context("Failed to get rustls config")?;
 
-    HttpServer::new(|| App::new().service(greet))
-        .bind_rustls_0_23(("127.0.0.1", 8080), config)
-        .context("Failed to bind to TLS socket")?
-        .run()
+    let app = Router::new()
+        .route("/hello/{name}", get(greet))
+        .route("/health_check", get(health_check));
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8081));
+    info!("listening on https://{}/", addr);
+
+    axum_server::bind_rustls(addr, config)
+        .serve(app.into_make_service())
         .await
         .context("Error occurred while running server")?;
 
     Ok(())
 }
 
-#[get("/hello/{name}")]
-async fn greet(name: web::Path<String>) -> impl Responder {
+async fn greet(Path(name): Path<String>) -> impl IntoResponse {
     format!("Hello {}!", name)
 }
+async fn health_check() -> impl IntoResponse { (StatusCode::OK, "Hello world") }

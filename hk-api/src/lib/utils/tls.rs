@@ -5,13 +5,26 @@
 //! On top of requiring enabling relevant features from tls crates, building
 //! also requires that relevant dependencies like CMake and NASM (for aws-lc-rs
 //! feature) to be installed on the system.
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use actix_tls::accept::rustls_0_23::reexports::ServerConfig;
+use axum_server::tls_rustls::RustlsConfig;
 use color_eyre::eyre::{Context, ContextCompat, Result};
 use fs_err as fs;
+use rustls::ServerConfig;
 use rustls_pki_types::CertificateDer;
 use tracing::{info, warn};
+
+pub static PROVIDER_INIT: std::sync::LazyLock<()> =
+    std::sync::LazyLock::new(|| {
+        // Initialize the default crypto provider to fix rustls CryptoProvider
+        // error
+        if rustls::crypto::aws_lc_rs::default_provider()
+            .install_default()
+            .is_err()
+        {
+            tracing::warn!("Crypto Provider is already installed");
+        }
+    });
 
 /// Initialize the TLS configuration
 ///
@@ -19,28 +32,36 @@ use tracing::{info, warn};
 /// loaded. Otherwise, a self-signed certificate is generated and saved to the
 /// data directory.
 pub fn init(data_path: impl AsRef<Path>) -> Result<ServerConfig> {
-    // Initialize the default crypto provider to fix rustls CryptoProvider error
-    rustls::crypto::aws_lc_rs::default_provider().install_default().map_err(
-        |_| {
-            color_eyre::eyre::eyre!("Failed to install default crypto provider")
-        },
-    )?;
-
     let data_path = data_path.as_ref();
-    let cert_path = data_path.join("cert.pem");
-    let key_path = data_path.join("key.pem");
+
+    let (cert_path, key_path) =
+        pem_file_path(data_path).context("Failed to get PEM file paths")?;
+
+    from_file(&cert_path, &key_path)
+}
+
+/// Get the certificate and key file paths in the given root path, if missing,
+/// generate them.
+pub fn pem_file_path(
+    root_path: impl AsRef<Path>,
+) -> Result<(PathBuf, PathBuf)> {
+    let root_path = root_path.as_ref();
+    let cert_path = root_path.join("cert.pem");
+    let key_path = root_path.join("key.pem");
+
     if !cert_path.exists() || !key_path.exists() {
         tracing::warn!(
-            r#"Certificate and key files do not exist, generating them in "{}/{{...}}"#,
-            data_path.display()
+            r#"Certificate and key files do not exist, generating them in "{}/[REDACTED]"#,
+            root_path.display()
         );
-        fs::create_dir_all(data_path)
-            .context("unable to create data directory")?;
+        fs::create_dir_all(root_path)
+            .context("Failure to create data directory")?;
+
         generate(&cert_path, &key_path, None)
-            .context("Failed to generate certificate paths")
             .context("Failed to generate signed certificates")?;
     }
-    from_file(&cert_path, &key_path)
+
+    Ok((cert_path, key_path))
 }
 
 /// Generate a self-signed certificate and save it to the certificate and key
@@ -104,4 +125,15 @@ fn from_file(cert_path: &Path, key_path: &Path) -> Result<ServerConfig> {
         .with_no_client_auth()
         .with_single_cert(cert_chain, private_key)
         .context("Unable to create TLS configuration")
+}
+
+pub async fn get_rustls_config(
+    root_path: impl AsRef<Path>,
+) -> Result<RustlsConfig> {
+    let root_path = root_path.as_ref();
+    let (cert_path, key_path) =
+        pem_file_path(root_path).context("Failed to get PEM file paths")?;
+    RustlsConfig::from_pem_file(cert_path.as_path(), key_path.as_path())
+        .await
+        .context("Failed to create RustlsConfig from PEM files")
 }

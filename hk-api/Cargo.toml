@@ -12,8 +12,8 @@ name = "hk_api"
 path = "src/main.rs"
 
 [dependencies]
-actix-tls = { version = "3.4.0", features = ["rustls-0_23"] }
-actix-web = { version = "4.11.0", features = ["rustls-0_23"] }
+axum = "0.8.4"
+axum-server = { version = "0.7.2", features = ["rustls", "tls-rustls"] }
 chrono = { workspace = true, features = ["serde"] }
 color-eyre = { workspace = true }
 dotenvy = { workspace = true }
