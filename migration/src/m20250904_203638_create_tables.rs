@@ -1,8 +1,7 @@
-use color_eyre::eyre::Context;
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::schema::*;
 
-pub use super::pk_auto;
+use crate::log_with_context as lwc;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -10,66 +9,53 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .create_table(
-                Table::create()
-                    .table(User::Table)
-                    .if_not_exists()
-                    .col(pk_auto(User::Id))
-                    .col(string(User::Username))
-                    .col(string(User::Pasword))
-                    .to_owned(),
-            )
+            .create_table(User::create_table())
             .await
-            .inspect_err(|e| {
-                tracing::warn!("Failed to create user table: {}", e)
-            })?;
+            .map_err(lwc("Failed to create user table"))?;
 
         manager
-            .create_table(
-                Table::create()
-                    .table(Doctor::Table)
-                    .if_not_exists()
-                    .col(pk_auto(Doctor::Id))
-                    .col(string(Doctor::UserId))
-                    .to_owned(),
-            )
+            .create_index(User::create_cedula_index())
             .await
-            .inspect_err(|e| {
-                tracing::warn!("Failed to create user table: {}", e)
-            })?;
+            .map_err(lwc("Failed to create user.cedula index"))?;
+
+        manager
+            .create_table(Doctor::create_table())
+            .await
+            .map_err(lwc("Failed to create doctor table"))?;
+
+        manager
+            .create_foreign_key(Doctor::table_user_fk())
+            .await
+            .map_err(lwc("Failed to relate doctor.user_id -> user.id"))?;
+
+        manager
+            .create_table(Patient::create_table())
+            .await
+            .map_err(lwc("Failed to create patient table"))?;
+
+        manager
+            .create_foreign_key(Patient::table_user_fk())
+            .await
+            .map_err(lwc("Failed to relate patient.user_id -> user.id"))?;
+
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        let mut errs = Vec::new();
-        let mut push = |e| {
-            errs.push(e);
-        };
-        manager
-            .drop_table(
-                Table::drop().if_exists().table(User::Table).to_owned(), //
-            )
+        manager // This will also drop related indexes
+            .drop_table(User::drop_table())
             .await
-            .context("Failed to drop `User` table")
-            .map_err(&mut push)
-            .ok();
+            .map_err(lwc("Failed to drop `User` table"))?;
+
         manager
-            .drop_table(
-                Table::drop().if_exists().table(Doctor::Table).to_owned(),
-            )
+            .drop_table(Doctor::drop_table())
             .await
-            .context("Failed to drop `Doctor` table")
-            .map_err(&mut push)
-            .ok();
-        if !errs.is_empty() {
-            tracing::warn!(
-                "Encountered {} errors while running down migrations",
-                errs.len()
-            );
-            for e in errs {
-                tracing::warn!("Error: {}", e);
-            }
-        }
+            .map_err(lwc("Failed to drop `Doctor` table"))?;
+
+        manager
+            .drop_table(Patient::drop_table())
+            .await
+            .map_err(lwc("Failed to drop `Patient` table"))?;
         Ok(())
     }
 }
@@ -78,8 +64,38 @@ impl MigrationTrait for Migration {
 enum User {
     Table,
     Id,
-    Username,
-    Pasword,
+    Cedula,
+    Passport,
+}
+
+impl User {
+    /// Name of the unique index on [`User::Cedula`] column
+    /// # dead_code: No usage found yet for this constant
+    #[expect(dead_code)]
+    const INDEX_CEDULA: &'static str = "user_cedula_idx";
+
+    pub fn create_table() -> TableCreateStatement {
+        Table::create()
+            .table(User::Table)
+            .comment("Base user authentication table")
+            .col(uuid(User::Id).primary_key().comment("Test Comment"))
+            .col(string(User::Cedula).char_len(20).unique_key())
+            .col(text_null(User::Passport).unique_key()) // Make unique here since there's no special requirements
+            .to_owned()
+    }
+
+    pub fn drop_table() -> TableDropStatement {
+        Table::drop().table(User::Table).if_exists().to_owned()
+    }
+
+    pub fn create_cedula_index() -> IndexCreateStatement {
+        Index::create()
+            .table(User::Table)
+            .col(User::Cedula)
+            .unique()
+            .include(User::Id)
+            .take()
+    }
 }
 
 #[derive(DeriveIden)]
@@ -87,4 +103,63 @@ enum Doctor {
     Table,
     Id,
     UserId,
+    PasswordHash,
+}
+
+impl Doctor {
+    pub fn create_table() -> TableCreateStatement {
+        Table::create()
+            .table(Doctor::Table)
+            .if_not_exists()
+            .col(uuid(Doctor::Id).primary_key())
+            .col(uuid_null(Doctor::UserId).unique_key())
+            .col(text(Doctor::PasswordHash))
+            .to_owned()
+    }
+
+    pub fn table_user_fk() -> ForeignKeyCreateStatement {
+        ForeignKey::create()
+            .from(Doctor::Table, Doctor::UserId)
+            .to(User::Table, User::Id)
+            .on_delete(ForeignKeyAction::SetNull)
+            .on_update(ForeignKeyAction::Restrict)
+            .take()
+    }
+
+    pub fn drop_table() -> TableDropStatement {
+        Table::drop().table(Doctor::Table).if_exists().to_owned()
+    }
+}
+
+#[derive(DeriveIden)]
+enum Patient {
+    Table,
+    Id,
+    UserId,
+    PasswordHash,
+}
+
+impl Patient {
+    pub fn create_table() -> TableCreateStatement {
+        Table::create()
+            .table(Patient::Table)
+            .if_not_exists()
+            .col(uuid(Patient::Id).primary_key())
+            .col(uuid_null(Patient::UserId).unique_key())
+            .col(text(Patient::PasswordHash))
+            .to_owned()
+    }
+
+    pub fn table_user_fk() -> ForeignKeyCreateStatement {
+        ForeignKey::create()
+            .from(Patient::Table, Patient::UserId)
+            .to(User::Table, User::Id)
+            .on_delete(ForeignKeyAction::SetNull)
+            .on_update(ForeignKeyAction::Restrict)
+            .take()
+    }
+
+    pub fn drop_table() -> TableDropStatement {
+        Table::drop().table(Patient::Table).if_exists().to_owned()
+    }
 }

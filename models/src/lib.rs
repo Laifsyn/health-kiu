@@ -1,1 +1,3 @@
-mod user;
+mod entities;
+
+pub use entities::{prelude, *};
