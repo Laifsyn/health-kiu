@@ -5,7 +5,6 @@ use sea_orm_migration as som;
 pub use sea_orm_migration::prelude::*;
 
 mod m20250904_203638_create_tables;
-mod m20250912_212231_some_name;
 
 /// Drop-in replacement for [`sea_orm_migration::schema::pk_auto`].
 /// Replaces the `integer` type with [`big_integer`](ColumnType::BigInteger).
@@ -67,9 +66,6 @@ pub struct Migrator;
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-        vec![
-            Box::new(m20250904_203638_create_tables::Migration),
-            // Box::new(m20250912_212231_some_name::Migration),
-        ]
+        vec![Box::new(m20250904_203638_create_tables::Migration)]
     }
 }
