@@ -2,6 +2,11 @@
 
 pub mod prelude;
 
+pub mod asegurado;
+pub mod cita;
 pub mod doctor;
+pub mod doctor_especialidad;
+pub mod especialidad;
+pub mod habitacion;
 pub mod patient;
 pub mod user;

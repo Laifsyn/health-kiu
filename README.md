@@ -1,8 +1,9 @@
+- [Binary Build - Required Third Party Dependencies](#binary-build---required-third-party-dependencies)
 - [Running Migrations:](#running-migrations)
 - [Generating Migration Files via CLI:](#generating-migration-files-via-cli)
   - [Example lib.rs](#example-librs)
 
-# Binary Build Third Party Dependencies
+# Binary Build - Required Third Party Dependencies
 
 Building the API server requires system dependencies of [CMake](https://cmake.org/download/) and [NASM](https://www.nasm.us/) due to the usage of [rustls](https://crates.io/crates/rustls) to generate self-signed certificates
 

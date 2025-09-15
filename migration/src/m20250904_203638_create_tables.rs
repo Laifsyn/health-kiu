@@ -80,7 +80,7 @@ impl MigrationTrait for Migration {
             .map_err(lwc("Failed to create asegurado table"))?;
 
         manager
-            .create_foreign_key(Asegurado::table_patient_fk())
+            .create_foreign_key(Asegurado::table_user_fk())
             .await
             .map_err(lwc("Failed to relate asegurado.patient_id -> user.id"))?;
 
@@ -270,8 +270,8 @@ impl Especialidad {
         Table::create()
             .table(Especialidad::Table)
             .if_not_exists()
-            .col(crate::pk_auto(Especialidad::Id).small_integer())
-            .col(string_len(Especialidad::Nombre, 100))
+            .col(pk_auto(Especialidad::Id).small_integer())
+            .col(text_uniq(Especialidad::Nombre))
             .to_owned()
     }
 
@@ -285,30 +285,28 @@ pub enum DoctorEspecialidad {
     Table,
     DoctorId,
     EspecialidadId,
-    FechaCertificacion,
+    CertificationDate,
     Activo,
 }
 
 impl DoctorEspecialidad {
     pub fn create_table() -> TableCreateStatement {
         Table::create()
-            .table(DoctorEspecialidad::Table)
+            .table(Self::Table)
             .if_not_exists()
-            .col(uuid(DoctorEspecialidad::DoctorId))
-            .col(small_integer(DoctorEspecialidad::EspecialidadId))
-            .col(date_null(DoctorEspecialidad::FechaCertificacion))
-            .col(boolean(DoctorEspecialidad::Activo).default(true))
+            .col(uuid_null(Self::DoctorId))
+            .col(small_integer_null(Self::EspecialidadId))
+            .col(date_null(Self::CertificationDate))
+            .col(boolean(Self::Activo).default(true))
             .primary_key(
-                Index::create()
-                    .col(DoctorEspecialidad::DoctorId)
-                    .col(DoctorEspecialidad::EspecialidadId),
+                Index::create().col(Self::DoctorId).col(Self::EspecialidadId),
             )
             .to_owned()
     }
 
     pub fn table_doctor_fk() -> ForeignKeyCreateStatement {
         ForeignKey::create()
-            .from(DoctorEspecialidad::Table, DoctorEspecialidad::DoctorId)
+            .from(Self::Table, Self::DoctorId)
             .to(Doctor::Table, Doctor::Id)
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Restrict)
@@ -317,7 +315,7 @@ impl DoctorEspecialidad {
 
     pub fn table_especialidad_fk() -> ForeignKeyCreateStatement {
         ForeignKey::create()
-            .from(DoctorEspecialidad::Table, DoctorEspecialidad::EspecialidadId)
+            .from(Self::Table, Self::EspecialidadId)
             .to(Especialidad::Table, Especialidad::Id)
             .on_delete(ForeignKeyAction::Cascade)
             .on_update(ForeignKeyAction::Restrict)
@@ -343,7 +341,7 @@ impl Habitacion {
         Table::create()
             .table(Habitacion::Table)
             .if_not_exists()
-            .col(crate::pk_auto(Habitacion::Id))
+            .col(pk_auto(Habitacion::Id))
             .col(small_integer_uniq(Habitacion::Numero))
             .col(text_null(Habitacion::Descripcion))
             .col(string_len(Habitacion::Piso, 20))
@@ -359,7 +357,7 @@ impl Habitacion {
 pub enum Asegurado {
     Table,
     Id,
-    PatientId,
+    UserId,
     /// Identificador expedido por la aseguradora
     NaturalId,
     Description,
@@ -371,15 +369,15 @@ impl Asegurado {
             .table(Asegurado::Table)
             .if_not_exists()
             .col(uuid(Asegurado::Id).primary_key())
-            .col(uuid_null(Asegurado::PatientId))
+            .col(uuid_null(Asegurado::UserId))
             .col(string_len(Asegurado::NaturalId, 50).unique_key())
             .col(text_null(Asegurado::Description))
             .to_owned()
     }
 
-    pub fn table_patient_fk() -> ForeignKeyCreateStatement {
+    pub fn table_user_fk() -> ForeignKeyCreateStatement {
         ForeignKey::create()
-            .from(Asegurado::Table, Asegurado::PatientId)
+            .from(Asegurado::Table, Asegurado::UserId)
             .to(User::Table, User::Id)
             .on_delete(ForeignKeyAction::SetNull)
             .on_update(ForeignKeyAction::Restrict)
@@ -412,7 +410,7 @@ impl Cita {
             .col(uuid_null(Cita::PacienteId))
             .col(timestamp(Cita::Fecha))
             .col(uuid_null(Cita::AseguradoId))
-            .col(string_len(Cita::Estado, 50))
+            .col(string_len(Cita::Estado, 16))
             .to_owned()
     }
 

@@ -3,22 +3,21 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "doctor")]
+#[sea_orm(table_name = "asegurado")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
-    #[sea_orm(unique)]
     pub user_id: Option<Uuid>,
-    #[sea_orm(column_type = "Text")]
-    pub password_hash: String,
+    #[sea_orm(unique)]
+    pub natural_id: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub description: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(has_many = "super::cita::Entity")]
     Cita,
-    #[sea_orm(has_many = "super::doctor_especialidad::Entity")]
-    DoctorEspecialidad,
     #[sea_orm(
         belongs_to = "super::user::Entity",
         from = "Column::UserId",
@@ -35,24 +34,9 @@ impl Related<super::cita::Entity> for Entity {
     }
 }
 
-impl Related<super::doctor_especialidad::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::DoctorEspecialidad.def()
-    }
-}
-
 impl Related<super::user::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::User.def()
-    }
-}
-
-impl Related<super::especialidad::Entity> for Entity {
-    fn to() -> RelationDef {
-        super::doctor_especialidad::Relation::Especialidad.def()
-    }
-    fn via() -> Option<RelationDef> {
-        Some(super::doctor_especialidad::Relation::Doctor.def().rev())
     }
 }
 
