@@ -26,6 +26,7 @@ hk-api = { path = "hk-api" }
 migration = { path = "migration" }
 mime = "0.3.17"
 models = { path = "models" }
+readonly = "0.2.13"
 scopeguard = "1.2"
 sea-orm = "1.1.16"
 serde = "1.0.219"

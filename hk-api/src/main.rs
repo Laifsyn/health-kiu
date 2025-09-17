@@ -8,6 +8,7 @@ use axum::routing::get;
 use color_eyre::eyre::Context;
 use tracing::info;
 
+mod app;
 mod migrator_main;
 use hk_api::tls::get_rustls_config;
 pub use migrator_main::main as run_migrations;

@@ -47,6 +47,8 @@ impl MigrationTrait for Migration {
             .await
             .map_err(lwc("Failed to create especialidad table"))?;
 
+        Especialidad::populate_data(manager).await?;
+
         // Create DoctorEspecialidad junction table
         manager
             .create_table(DoctorEspecialidad::create_table())
@@ -263,6 +265,7 @@ pub enum Especialidad {
     Table,
     Id,
     Nombre,
+    ImgPath,
 }
 
 impl Especialidad {
@@ -272,11 +275,110 @@ impl Especialidad {
             .if_not_exists()
             .col(pk_auto(Especialidad::Id).small_integer())
             .col(text_uniq(Especialidad::Nombre))
+            .col(text_null(Especialidad::ImgPath))
             .to_owned()
     }
 
     pub fn drop_table() -> TableDropStatement {
         Table::drop().table(Especialidad::Table).if_exists().to_owned()
+    }
+
+    async fn populate_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
+        let specialties = [
+            // Core Primary Care
+            ("Medicina General", "/images/specialties/general-medicine.jpg"),
+            ("Medicina Familiar", "/images/specialties/family-medicine.jpg"),
+            ("Medicina Interna", "/images/specialties/internal-medicine.jpg"),
+            ("Pediatría", "/images/specialties/pediatrics.jpg"),
+            ("Geriatría", "/images/specialties/geriatrics.jpg"),
+
+            // Women's Health
+            ("Ginecología y Obstetricia", "/images/specialties/obgyn.jpg"),
+
+            // Emergency & Critical Care
+            ("Medicina de Emergencias", "/images/specialties/emergency-medicine.jpg"),
+            ("Medicina Crítica", "/images/specialties/critical-care.jpg"),
+
+            // Major Surgery
+            ("Cirugía General", "/images/specialties/general-surgery.jpg"),
+            ("Anestesiología", "/images/specialties/anesthesiology.jpg"),
+
+            // Cardiovascular
+            ("Cardiología", "/images/specialties/cardiology.jpg"),
+            ("Cirugía Cardiovascular", "/images/specialties/cardiovascular-surgery.jpg"),
+
+            // Neurological
+            ("Neurología", "/images/specialties/neurology.jpg"),
+            ("Neurocirugía", "/images/specialties/neurosurgery.jpg"),
+
+            // Mental Health
+            ("Psiquiatría", "/images/specialties/psychiatry.jpg"),
+
+            // Musculoskeletal
+            ("Traumatología y Ortopedia", "/images/specialties/orthopedics.jpg"),
+            ("Reumatología", "/images/specialties/rheumatology.jpg"),
+
+            // Sensory Organs
+            ("Oftalmología", "/images/specialties/ophthalmology.jpg"),
+            ("Otorrinolaringología", "/images/specialties/otolaryngology.jpg"),
+
+            // Skin
+            ("Dermatología", "/images/specialties/dermatology.jpg"),
+
+            // Urogenital
+            ("Urología", "/images/specialties/urology.jpg"),
+
+            // Digestive System
+            ("Gastroenterología", "/images/specialties/gastroenterology.jpg"),
+
+            // Respiratory
+            ("Neumología", "/images/specialties/pulmonology.jpg"),
+
+            // Endocrine
+            ("Endocrinología", "/images/specialties/endocrinology.jpg"),
+
+            // Blood & Cancer
+            ("Hematología", "/images/specialties/hematology.jpg"),
+            ("Oncología", "/images/specialties/oncology.jpg"),
+
+            // Infectious Disease
+            ("Infectología", "/images/specialties/infectious-disease.jpg"),
+
+            // Diagnostic
+            ("Radiología", "/images/specialties/radiology.jpg"),
+            ("Patología", "/images/specialties/pathology.jpg"),
+
+            // Additional Surgical Specialties
+            ("Cirugía Plástica", "/images/specialties/plastic-surgery.jpg"),
+            ("Cirugía Torácica", "/images/specialties/thoracic-surgery.jpg"),
+            ("Cirugía Vascular", "/images/specialties/vascular-surgery.jpg"),
+
+            // Rehabilitation
+            ("Medicina Física y Rehabilitación", "/images/specialties/physical-medicine.jpg"),
+
+            // Specialized Care
+            ("Medicina del Dolor", "/images/specialties/pain-management.jpg"),
+            ("Medicina Preventiva", "/images/specialties/preventive-medicine.jpg"),
+            ("Medicina Ocupacional", "/images/specialties/occupational-medicine.jpg"),
+            ("Alergología e Inmunología", "/images/specialties/allergy-immunology.jpg"),
+            ("Nefrología", "/images/specialties/nephrology.jpg"),
+            ("Medicina Nuclear", "/images/specialties/nuclear-medicine.jpg"),
+        ];
+        let mut insert = Query::insert()
+            .into_table(Especialidad::Table)
+            .columns([Especialidad::Nombre, Especialidad::ImgPath])
+            .to_owned();
+
+        for (name, img_path) in specialties.iter() {
+            insert.values_panic([(*name).into(), (*img_path).into()]);
+        }
+
+        manager
+            .exec_stmt(insert)
+            .await
+            .map_err(lwc("Failed to insert specialties"))?;
+
+        Ok(())
     }
 }
 

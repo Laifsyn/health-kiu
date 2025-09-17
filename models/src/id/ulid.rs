@@ -25,6 +25,9 @@ impl Ulid {
         Ulid(ulid::Ulid::from_bytes(uuid.into_bytes()))
     }
 
+    /// Converts the ULID to a UUID.
+    pub const fn as_uuid(&self) -> Uuid { Uuid::from_bytes(self.0.to_bytes()) }
+
     /// Generates a new ULID.
     pub fn new() -> Self { Self::default() }
 }
