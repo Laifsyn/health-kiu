@@ -5,5 +5,10 @@ edition = "2024"
 
 [dependencies]
 sea-orm = { workspace = true }
+serde = { workspace = true }
 ulid = { workspace = true, features = ["postgres"] }
 uuid = { workspace = true }
+
+[dev-dependencies]
+dotenvy = { workspace = true }
+tokio = { workspace = true, features = ["full"] }

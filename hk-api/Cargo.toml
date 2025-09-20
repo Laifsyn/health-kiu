@@ -30,10 +30,13 @@ scopeguard = { workspace = true }
 sea-orm = { workspace = true, features = ["with-uuid"] }
 serde = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
-tokio = { version = "1.47.1", features = [
+tokio = { workspace = true, features = [
     "rt-multi-thread",
     "macros",
     "parking_lot",
 ] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

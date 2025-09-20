@@ -9,6 +9,8 @@ pub struct Model {
     pub id: i16,
     #[sea_orm(column_type = "Text", unique)]
     pub nombre: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub img_path: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
