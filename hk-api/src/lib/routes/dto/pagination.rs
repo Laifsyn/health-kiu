@@ -2,7 +2,7 @@ use std::num::NonZero;
 
 use serde::{Deserialize, Serialize};
 
-use crate::domain::internal::{OutOfBoundsPagination, Pagination};
+use crate::domain::{OutOfBoundsPagination, Pagination};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 #[derive(Deserialize)]

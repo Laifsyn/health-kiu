@@ -1,6 +1,5 @@
 //! Domain's models and business type.
 
-pub mod internal;
-mod specialty;
+mod pagination;
 
-pub use specialty::*;
+pub use pagination::*;

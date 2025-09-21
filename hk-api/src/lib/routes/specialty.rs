@@ -6,13 +6,13 @@ use itertools::Itertools;
 
 use super::Result;
 use crate::app::ServerApp;
-use crate::domain::{self, Specialty};
-use crate::routes::{PaginatedReq, PaginatedResp};
+use crate::domain::{self};
+use crate::routes::dto::{PaginatedReq, PaginatedResp, Specialty};
 
 pub async fn specialties_get(
     Query(pag_params): Query<Option<PaginatedReq>>,
     State(app): State<Arc<ServerApp>>,
-) -> Result<Json<PaginatedResp<domain::Specialty>>> {
+) -> Result<Json<PaginatedResp<Specialty>>> {
     let pagination = pag_params.unwrap_or_default();
     let items = app
         .get_specialties(pagination.clone())
@@ -27,7 +27,7 @@ pub async fn specialties_get(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::routes::PaginationLimit;
+    use crate::routes::dto::PaginationLimit;
     use crate::{init_env, logger_init};
 
     #[tokio::test]
@@ -38,7 +38,7 @@ mod test {
         let app = ServerApp::new_for_test().await;
         let pagination =
             PaginatedReq { offset: 0, count: PaginationLimit::new(5).unwrap() };
-        let result = specialties_get(Query(Some(pagination)), State(app)).await;
+        let result = specialties_get(Query(None), State(app)).await;
         assert!(result.is_ok());
         let Json(resp) = result.unwrap();
         assert_serializeable(&resp);

@@ -1,13 +1,13 @@
-/// Pagination struct to handle offset and limit for paginated queries.
-///
-/// - `offset`: The starting point for the records to fetch.
-/// - `limit`: The maximum number of records to fetch, capped at
-///   [`Pagination::MAX_OFFSET`].
+/// Pagination parameters for database queries.
+/// Used to limit the number of records fetched and to avoid huge data fetching.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[readonly::make]
 pub struct Pagination {
+    /// The starting point for the records to fetch.
     pub offset: u64,
+    /// The maximum number of records to fetch, capped at
+    ///   [`Pagination::MAX_OFFSET`].
     pub limit: u16,
 }
 
@@ -16,8 +16,7 @@ pub struct Pagination {
 pub struct OutOfBoundsPagination;
 
 impl Pagination {
-    /// Maximum limit allowed for pagination queries. Used to avoid huge data
-    /// fetching.
+    /// Maximum limit allowed per pagination.
     pub const MAX_LIMIT: u16 = 1024;
 
     pub const fn new(offset: u64, limit: u16) -> Option<Self> {

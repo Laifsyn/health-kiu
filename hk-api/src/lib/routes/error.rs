@@ -149,7 +149,15 @@ impl Serialize for ErrorKind {
 
         match self {
             Self::Database(e) => {
-                state.serialize_field("message", &e.to_string())?;
+                if cfg!(not(debug_assertions)) {
+                    // FIXME: Do we really want to log all Database errors?
+                    tracing::warn!("Hiding db error: {}", e);
+                    let internal = ErrorKind::Internal;
+                    state.serialize_field("type", internal.kind())?;
+                    state.serialize_field("message", &internal.to_string())?;
+                } else {
+                    state.serialize_field("message", &e.to_string())?;
+                }
             }
             _ => {
                 state.serialize_field("message", &self.to_string())?;

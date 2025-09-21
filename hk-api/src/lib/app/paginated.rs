@@ -6,16 +6,15 @@ use sea_orm::prelude::*;
 use sea_orm::{DbErr, QueryOrder, QuerySelect};
 
 use crate::ServerApp;
-use crate::domain::internal::Pagination;
+use crate::domain::Pagination;
 
 impl ServerApp {
     /// Builds a paginated select query for the given entity type `T`.
     ///
-    /// # Arguments
-    /// - `offset`: The offset to start fetching records from. If `None`, starts
-    ///   from the beginning.
-    /// - `limit`: The maximum number of records to fetch. Defaults to 1 when
-    ///   smaller than 1 (0).
+    /// ```rs, ignore
+    /// use models::prelude::Especialidad;
+    /// app.select_paginated::<Especialidad>(Pagination::new(0, 10).unwrap());
+    /// ```
     fn select_paginated<T>(&self, pagination: Pagination) -> Select<T>
     where
         T: EntityTrait,

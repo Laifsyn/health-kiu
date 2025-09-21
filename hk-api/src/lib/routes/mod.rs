@@ -1,14 +1,14 @@
+//! Service's route handlers and related DTO.
+pub mod dto;
 mod error;
-mod helpers;
 mod specialty;
 
 /// A specialized [`Result`](core::result::Result) type for route handlers.
 pub type Result<T, E = ApiError> = std::result::Result<T, E>;
 
-use error::{ApiError, ErrorKind};
-pub(super) use helpers::pagination::*;
+pub use error::{ApiError, ErrorKind};
 
-use crate::domain::internal::OutOfBoundsPagination;
+use crate::domain::OutOfBoundsPagination;
 
 impl From<OutOfBoundsPagination> for ErrorKind {
     fn from(err: OutOfBoundsPagination) -> Self {
