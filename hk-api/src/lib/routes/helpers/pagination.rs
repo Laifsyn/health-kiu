@@ -33,10 +33,9 @@ impl PaginatedReq {
 
         // Add 1 to check for more items
         let limit = count.get() + 1;
-        const { assert!(Pagination::MAX_LIMIT == PaginatedReq::MAX_COUNT) };
-        let offset = offset;
+        const { assert!(Pagination::MAX_LIMIT == PaginatedReq::MAX_COUNT + 1) };
         Pagination::new(offset, limit)
-            .expect("Limit is in bounds to Pagination")
+            .expect("Self::limit is in bounds to Pagination's MAX_LIMIT")
     }
 }
 
@@ -59,7 +58,8 @@ impl PaginationLimit {
     /// Default amount of items to search for.
     pub const DEFAULT_VALUE: u16 = 10;
     /// Maximum amount of items to search for.
-    pub const MAX: u16 = Pagination::MAX_LIMIT;
+    // -1 to account for "more items" check
+    pub const MAX: u16 = Pagination::MAX_LIMIT - 1;
 
     /// Default amount of items to search for.
     pub fn new(value: u16) -> Option<Self> {
@@ -104,14 +104,18 @@ impl<T> PaginatedResp<T> {
         mut items: Vec<T>,
         pagination: PaginatedReq,
     ) -> PaginatedResp<T> {
-        let count: u64 = pagination.count.get().into();
-        let page_size = u64::try_from(items.len()).expect("len fits in u64");
-        let has_more = if page_size > count {
-            items.pop();
-            true
-        } else {
-            false
-        };
+        let count = pagination.count.get() as usize;
+        let has_more = items.len() > count;
+
+        debug_assert!(
+            items.len() <= count + 1,
+            "Backend/Database should've at most fetched `count + 1` items"
+        );
+
+        // Truncate to exact count if we have more
+        items.truncate(count);
+
+        let page_size = items.len() as u64;
 
         PaginatedResp {
             page_size,

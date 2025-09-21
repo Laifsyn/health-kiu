@@ -57,6 +57,10 @@ impl ApiError {
     }
 }
 
+impl<T: Into<ErrorKind> + Display> From<T> for ApiError {
+    fn from(value: T) -> Self { ApiError::from_err(value) }
+}
+
 impl fmt::Display for ApiError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let Self { context, source } = self;

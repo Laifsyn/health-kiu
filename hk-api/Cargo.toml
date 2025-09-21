@@ -19,6 +19,7 @@ color-eyre = { workspace = true }
 # derive_more = { workspace = true }
 dotenvy = { workspace = true }
 fs-err = { workspace = true }
+itertools = { workspace = true }
 migration = { workspace = true }
 models = { workspace = true }
 rcgen = "0.14.3"

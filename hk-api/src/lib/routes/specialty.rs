@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::extract::{Query, State};
+use itertools::Itertools;
 
 use super::Result;
 use crate::app::ServerApp;
 use crate::domain::{self, Specialty};
-use crate::routes::error::ApiError;
 use crate::routes::{PaginatedReq, PaginatedResp};
 
 pub async fn specialties_get(
@@ -16,11 +16,10 @@ pub async fn specialties_get(
     let pagination = pag_params.unwrap_or_default();
     let items = app
         .get_specialties(pagination.clone())
-        .await
-        .map_err(ApiError::from_err)?
+        .await?
         .into_iter()
         .map(Specialty::from)
-        .collect::<Vec<_>>();
+        .collect_vec();
     let resp = PaginatedResp::from_items(items, pagination);
     Ok(Json(resp))
 }

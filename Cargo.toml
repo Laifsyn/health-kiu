@@ -23,6 +23,7 @@ derive_more = { version = "2.0.1", features = [
 dotenvy = "0.15.7"
 fs-err = "3.1.1"
 hk-api = { path = "hk-api" }
+itertools = "0.14.0"
 migration = { path = "migration" }
 mime = "0.3.17"
 models = { path = "models" }
