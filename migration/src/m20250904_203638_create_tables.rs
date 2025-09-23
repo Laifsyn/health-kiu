@@ -175,7 +175,7 @@ impl User {
             .table(User::Table)
             .comment("Base user authentication table")
             .col(uuid(User::Id).primary_key().comment("Test Comment"))
-            .col(string(User::Cedula).char_len(20).unique_key())
+            .col(string_len(User::Cedula, 20).unique_key())
             .col(text_null(User::Passport).unique_key()) // Make unique here since there's no special requirements
             .to_owned()
     }
@@ -198,7 +198,7 @@ impl User {
 pub enum Doctor {
     Table,
     Id,
-    UserId,
+    Name,
     PasswordHash,
 }
 
@@ -208,16 +208,16 @@ impl Doctor {
             .table(Doctor::Table)
             .if_not_exists()
             .col(uuid(Doctor::Id).primary_key())
-            .col(uuid_null(Doctor::UserId).unique_key())
+            .col(text(Doctor::Name))
             .col(text(Doctor::PasswordHash))
             .to_owned()
     }
 
     pub fn table_user_fk() -> ForeignKeyCreateStatement {
         ForeignKey::create()
-            .from(Doctor::Table, Doctor::UserId)
+            .from(Doctor::Table, Doctor::Id)
             .to(User::Table, User::Id)
-            .on_delete(ForeignKeyAction::SetNull)
+            .on_delete(ForeignKeyAction::NoAction)
             .on_update(ForeignKeyAction::Restrict)
             .take()
     }
@@ -231,7 +231,7 @@ impl Doctor {
 pub enum Patient {
     Table,
     Id,
-    UserId,
+    Name,
     PasswordHash,
 }
 
@@ -241,16 +241,16 @@ impl Patient {
             .table(Patient::Table)
             .if_not_exists()
             .col(uuid(Patient::Id).primary_key())
-            .col(uuid_null(Patient::UserId).unique_key())
+            .col(text(Patient::Name))
             .col(text(Patient::PasswordHash))
             .to_owned()
     }
 
     pub fn table_user_fk() -> ForeignKeyCreateStatement {
         ForeignKey::create()
-            .from(Patient::Table, Patient::UserId)
+            .from(Patient::Table, Patient::Id)
             .to(User::Table, User::Id)
-            .on_delete(ForeignKeyAction::SetNull)
+            .on_delete(ForeignKeyAction::NoAction)
             .on_update(ForeignKeyAction::Restrict)
             .take()
     }
@@ -291,76 +291,78 @@ impl Especialidad {
             ("Medicina Interna", "/images/specialties/internal-medicine.jpg"),
             ("Pediatría", "/images/specialties/pediatrics.jpg"),
             ("Geriatría", "/images/specialties/geriatrics.jpg"),
-
             // Women's Health
             ("Ginecología y Obstetricia", "/images/specialties/obgyn.jpg"),
-
             // Emergency & Critical Care
-            ("Medicina de Emergencias", "/images/specialties/emergency-medicine.jpg"),
+            (
+                "Medicina de Emergencias",
+                "/images/specialties/emergency-medicine.jpg",
+            ),
             ("Medicina Crítica", "/images/specialties/critical-care.jpg"),
-
             // Major Surgery
             ("Cirugía General", "/images/specialties/general-surgery.jpg"),
             ("Anestesiología", "/images/specialties/anesthesiology.jpg"),
-
             // Cardiovascular
             ("Cardiología", "/images/specialties/cardiology.jpg"),
-            ("Cirugía Cardiovascular", "/images/specialties/cardiovascular-surgery.jpg"),
-
+            (
+                "Cirugía Cardiovascular",
+                "/images/specialties/cardiovascular-surgery.jpg",
+            ),
             // Neurological
             ("Neurología", "/images/specialties/neurology.jpg"),
             ("Neurocirugía", "/images/specialties/neurosurgery.jpg"),
-
             // Mental Health
             ("Psiquiatría", "/images/specialties/psychiatry.jpg"),
-
             // Musculoskeletal
-            ("Traumatología y Ortopedia", "/images/specialties/orthopedics.jpg"),
+            (
+                "Traumatología y Ortopedia",
+                "/images/specialties/orthopedics.jpg",
+            ),
             ("Reumatología", "/images/specialties/rheumatology.jpg"),
-
             // Sensory Organs
             ("Oftalmología", "/images/specialties/ophthalmology.jpg"),
             ("Otorrinolaringología", "/images/specialties/otolaryngology.jpg"),
-
             // Skin
             ("Dermatología", "/images/specialties/dermatology.jpg"),
-
             // Urogenital
             ("Urología", "/images/specialties/urology.jpg"),
-
             // Digestive System
             ("Gastroenterología", "/images/specialties/gastroenterology.jpg"),
-
             // Respiratory
             ("Neumología", "/images/specialties/pulmonology.jpg"),
-
             // Endocrine
             ("Endocrinología", "/images/specialties/endocrinology.jpg"),
-
             // Blood & Cancer
             ("Hematología", "/images/specialties/hematology.jpg"),
             ("Oncología", "/images/specialties/oncology.jpg"),
-
             // Infectious Disease
             ("Infectología", "/images/specialties/infectious-disease.jpg"),
-
             // Diagnostic
             ("Radiología", "/images/specialties/radiology.jpg"),
             ("Patología", "/images/specialties/pathology.jpg"),
-
             // Additional Surgical Specialties
             ("Cirugía Plástica", "/images/specialties/plastic-surgery.jpg"),
             ("Cirugía Torácica", "/images/specialties/thoracic-surgery.jpg"),
             ("Cirugía Vascular", "/images/specialties/vascular-surgery.jpg"),
-
             // Rehabilitation
-            ("Medicina Física y Rehabilitación", "/images/specialties/physical-medicine.jpg"),
-
+            (
+                "Medicina Física y Rehabilitación",
+                "/images/specialties/physical-medicine.jpg",
+            ),
             // Specialized Care
             ("Medicina del Dolor", "/images/specialties/pain-management.jpg"),
-            ("Medicina Preventiva", "/images/specialties/preventive-medicine.jpg"),
-            ("Medicina Ocupacional", "/images/specialties/occupational-medicine.jpg"),
-            ("Alergología e Inmunología", "/images/specialties/allergy-immunology.jpg"),
+            (
+                "Medicina Preventiva",
+                "/images/specialties/preventive-medicine.jpg",
+            ),
+            (
+                "Medicina Ocupacional",
+                "/images/specialties/occupational-medicine.jpg",
+            ),
+            (
+                "Alergología e Inmunología",
+                "/images/specialties/allergy-immunology.jpg",
+            ),
             ("Nefrología", "/images/specialties/nephrology.jpg"),
             ("Medicina Nuclear", "/images/specialties/nuclear-medicine.jpg"),
         ];

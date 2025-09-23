@@ -7,8 +7,8 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
-    #[sea_orm(unique)]
-    pub user_id: Option<Uuid>,
+    #[sea_orm(column_type = "Text")]
+    pub name: String,
     #[sea_orm(column_type = "Text")]
     pub password_hash: String,
 }
@@ -21,10 +21,10 @@ pub enum Relation {
     DoctorEspecialidad,
     #[sea_orm(
         belongs_to = "super::user::Entity",
-        from = "Column::UserId",
+        from = "Column::Id",
         to = "super::user::Column::Id",
         on_update = "Restrict",
-        on_delete = "SetNull"
+        on_delete = "NoAction"
     )]
     User,
 }
