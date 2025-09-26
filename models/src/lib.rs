@@ -1,7 +1,12 @@
 mod entities;
 mod id;
-pub use entities::{prelude, *};
+pub use entities::*;
 pub use id::Id;
+
+/// Re-exports Models' Entities
+pub mod prelude {
+    pub use super::entities::prelude::*;
+}
 
 #[cfg(test)]
 mod test {

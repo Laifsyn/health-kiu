@@ -42,3 +42,6 @@ validator = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+
+[lints.rust]
+unused = "warn"

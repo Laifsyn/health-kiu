@@ -1,27 +1,21 @@
-use std::sync::Arc;
-
-use axum::Json;
 use axum::extract::{Query, State};
 use itertools::Itertools;
 
-use super::Result;
-use crate::app::ServerApp;
-use crate::domain::{self};
-use crate::routes::dto::{PaginatedReq, PaginatedResp, Specialty};
+use super::prelude::*;
 
 pub async fn specialties_get(
-    Query(pag_params): Query<Option<PaginatedReq>>,
-    State(app): State<Arc<ServerApp>>,
-) -> Result<Json<PaginatedResp<Specialty>>> {
+    Query(pag_params): MaybePaginated,
+    State(app): StateApp,
+) -> ResultPaged<dto::Specialty> {
     let pagination = pag_params.unwrap_or_default();
     let items = app
         .get_specialties(pagination.clone())
         .await?
         .into_iter()
-        .map(Specialty::from)
+        .map(dto::Specialty::from)
         .collect_vec();
-    let resp = PaginatedResp::from_items(items, pagination);
-    Ok(Json(resp))
+    let resp = PaginatedResp::from_items(items, pagination).json();
+    Ok(resp)
 }
 
 #[cfg(test)]

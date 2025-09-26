@@ -124,16 +124,23 @@ impl<T> PaginatedResp<T> {
             items,
         }
     }
+
+    pub const fn json(self) -> axum::Json<Self> { axum::Json(self) }
+}
+
+impl<T> From<(Vec<T>, PaginatedReq)> for PaginatedResp<T> {
+    /// Delegates to [`PaginatedResp::from_items`]
+    fn from((items, pagination): (Vec<T>, PaginatedReq)) -> Self {
+        Self::from_items(items, pagination)
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    #[test]
     fn test_conversion() {
-        let req = PaginatedReq {
-            offset: 5,
-            count: PaginationLimit::new(20).unwrap(),
-        };
+        let req = PaginatedReq::default();
         let pagination = Pagination::from(req.clone());
 
         assert_eq!(pagination.offset, req.offset);

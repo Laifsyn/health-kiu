@@ -1,11 +1,6 @@
-mod paginated;
+mod r#impl;
 
-use std::sync::Arc;
-
-use sea_orm::Database;
 use sea_orm::prelude::*;
-use tokio::sync::OnceCell as TokioOnceCell;
-
 /// The main application state.
 /// Holds the database connection and other shared resources.
 pub struct ServerApp {
@@ -17,7 +12,11 @@ impl ServerApp {
 
     /// Creates a new instance of the application with a database connection
     /// using the [`Self::TEST_DB_ENV_VAR`] environment variable.
-    pub async fn new_for_test() -> Arc<Self> {
+    #[cfg(test)]
+    pub async fn new_for_test() -> std::sync::Arc<Self> {
+        use sea_orm::Database;
+        use tokio::sync::OnceCell as TokioOnceCell;
+
         crate::init_env();
         static DB: TokioOnceCell<DatabaseConnection> =
             TokioOnceCell::const_new();
@@ -39,7 +38,7 @@ impl ServerApp {
             })
             .await;
         let db = db.clone();
-        Arc::new(Self { repo: db })
+        std::sync::Arc::new(Self { repo: db })
     }
 
     pub fn connection(&self) -> &DatabaseConnection { &self.repo }

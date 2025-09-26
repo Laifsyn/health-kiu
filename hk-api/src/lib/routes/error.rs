@@ -16,6 +16,13 @@ impl ApiError {
         Self { context: None, source: source.into() }
     }
 
+    pub fn new_with_context<S: Into<Cow<'static, str>>>(
+        source: impl Into<ErrorKind>,
+        ctx: S,
+    ) -> Self {
+        Self::new(source).context(ctx)
+    }
+
     /// Attaches additional context to the `ApiError`.
     pub fn context<S: Into<Cow<'static, str>>>(mut self, ctx: S) -> Self {
         self.context = Some(ctx.into());
@@ -27,6 +34,13 @@ impl ApiError {
         ctx: S,
     ) -> Self {
         Self { context: Some(ctx.into()), source }
+    }
+
+    pub fn bad_request(ctx: impl Display) -> Self {
+        Self::new_with_context(
+            ErrorKind::BadRequest,
+            Cow::Owned(ctx.to_string()),
+        )
     }
 
     /// Helper function to convert Compatible errors.
