@@ -1,7 +1,6 @@
-use models::doctor::Model as DbDoctor;
-use models::especialidad::Model as DbEspecialidad;
 use sea_orm::prelude::*;
 
+use super::prelude::*;
 use crate::domain::Pagination;
 use crate::domain::dto::SpecialtyId;
 pub trait DoctorRepo {

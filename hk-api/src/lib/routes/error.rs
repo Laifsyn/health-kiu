@@ -2,6 +2,8 @@ use core::fmt;
 use std::borrow::Cow;
 use std::fmt::Display;
 
+use axum::Json;
+use axum::response::IntoResponse;
 use serde::Serialize;
 
 #[derive(thiserror::Error, Debug)]
@@ -16,24 +18,22 @@ impl ApiError {
         Self { context: None, source: source.into() }
     }
 
+    /// Creates a new `ApiError` with the given `ErrorKind` and context.
     pub fn new_with_context<S: Into<Cow<'static, str>>>(
         source: impl Into<ErrorKind>,
         ctx: S,
     ) -> Self {
-        Self::new(source).context(ctx)
+        Self { context: Some(ctx.into()), source: source.into() }
     }
 
-    /// Attaches additional context to the `ApiError`.
-    pub fn context<S: Into<Cow<'static, str>>>(mut self, ctx: S) -> Self {
-        self.context = Some(ctx.into());
-        self
-    }
-
-    pub fn with_context<S: Into<Cow<'static, str>>>(
-        source: ErrorKind,
-        ctx: S,
-    ) -> Self {
-        Self { context: Some(ctx.into()), source }
+    /// Returns a closure that creates a [`ApiError`] with the given context.
+    pub fn map_err_with<E>(
+        ctx: impl Into<Cow<'static, str>>,
+    ) -> impl FnOnce(E) -> Self
+    where
+        E: Into<ErrorKind>,
+    {
+        move |e| Self::new_with_context(e, ctx)
     }
 
     pub fn bad_request(ctx: impl Display) -> Self {
@@ -42,37 +42,10 @@ impl ApiError {
             Cow::Owned(ctx.to_string()),
         )
     }
-
-    /// Helper function to convert Compatible errors.
-    ///
-    /// ```rs, ignore
-    /// #[derive(Debug)]
-    /// struct FooError;
-    /// impl fmt::Display for FooError {
-    ///     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    ///         write!(f, "Foo Error ocurred.")
-    ///     }
-    /// }
-    /// impl From<FooError> for ErrorKind {
-    ///     fn from(value: FooError) -> Self { unimplemented!() }
-    /// }
-    /// fn return_foo_error() -> Result<(), FooError> { unimplemented!() }
-    /// fn main() {
-    ///     let foo: Result<(), ApiError> =
-    ///         return_foo_error().map_err(ApiError::from_err);
-    /// }
-    /// ```
-    pub fn from_err<T>(err: T) -> ApiError
-    where
-        T: Into<ErrorKind> + Display,
-    {
-        let context = err.to_string().into();
-        ApiError { context: Some(context), source: err.into() }
-    }
 }
 
-impl<T: Into<ErrorKind> + Display> From<T> for ApiError {
-    fn from(value: T) -> Self { ApiError::from_err(value) }
+impl<T: Into<ErrorKind>> From<T> for ApiError {
+    fn from(value: T) -> Self { ApiError::new(value) }
 }
 
 impl fmt::Display for ApiError {
@@ -83,6 +56,21 @@ impl fmt::Display for ApiError {
             Some(ctx) => write!(f, "{ctx}: {source}"),
             None => write!(f, "{source}"),
         }
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> axum::response::Response {
+        use axum::http::StatusCode as SC;
+        match self.source {
+            ErrorKind::BadRequest => (SC::BAD_REQUEST, Json(self)),
+            ErrorKind::Unauthorized => (SC::UNAUTHORIZED, Json(self)),
+            ErrorKind::NotFound => (SC::NOT_FOUND, Json(self)),
+            ErrorKind::Database(_) | ErrorKind::Internal => {
+                (SC::INTERNAL_SERVER_ERROR, Json(self))
+            }
+        }
+        .into_response()
     }
 }
 

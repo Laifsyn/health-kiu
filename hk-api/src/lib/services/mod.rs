@@ -1,14 +1,17 @@
-//! Http middlewares and services.
+//! External User's interaction to the system.
+//!
+//! The [`Service (self)`](self) layer abstracts how the outside world (e.g.,
+//! API handlers) interacts with the system's core logic (e.g., repositories).
 
 pub(crate) mod doctor;
 pub mod error;
-mod middleware;
-
 /// Type alias for service results.
 pub type Result<T, E = ServiceError> = std::result::Result<T, E>;
 pub(crate) use error::ServiceError;
 
+/// Convenience re-exports for [`crate::services`].
 mod prelude {
+    #![allow(unused_imports)]
     pub use crate::domain::dto::{DoctorId, SpecialtyId};
     pub use crate::domain::{Name, Pagination};
     pub use crate::repo::prelude::*;

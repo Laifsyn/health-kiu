@@ -10,6 +10,7 @@ pub mod specialty;
 pub use specialty::SpecialtyId;
 
 mod prelude {
+    #![allow(unused_imports)]
     pub use db::doctor::Model as DbDoctor;
     pub use db::especialidad::Model as DbEspecialidad;
     pub use db::user::Model as DbUser;

@@ -1,4 +1,4 @@
-mod r#impl;
+mod seaorm_impl;
 
 use sea_orm::prelude::*;
 /// The main application state.

@@ -61,3 +61,17 @@ impl DoctorRepo for ServerApp {
         Ok(Some((specialty, doctors)))
     }
 }
+
+impl SpecialtyRepo for ServerApp {
+    /// Fetches a paginated list of specialties from the database ordered by id.
+    async fn get_specialties(
+        &self,
+        paging: impl Into<Pagination>,
+    ) -> Result<Vec<especialidad::Model>, DbErr> {
+        let paging = paging.into();
+        self.select_paginated::<Especialidad>(paging)
+            .order_by_asc(especialidad::Column::Id)
+            .all(self.connection())
+            .await
+    }
+}

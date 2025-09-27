@@ -1,6 +1,5 @@
 pub use app::ServerApp;
-pub use utils::*;
-
+pub use utils::{ResultExt, *};
 mod app;
 pub(crate) mod domain;
 mod repo;

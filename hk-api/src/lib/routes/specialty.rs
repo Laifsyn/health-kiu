@@ -24,6 +24,7 @@ mod test {
     use crate::routes::dto::PaginationLimit;
     use crate::{init_env, logger_init};
 
+    // FIXME: Delete this test because should be an integration test
     #[tokio::test]
     async fn test_available_specialties() {
         init_env();
@@ -32,7 +33,7 @@ mod test {
         let app = ServerApp::new_for_test().await;
         let pagination =
             PaginatedReq { offset: 0, count: PaginationLimit::new(5).unwrap() };
-        let result = specialties_get(Query(None), State(app)).await;
+        let result = specialties_get(Query(pagination), State(app)).await;
         assert!(result.is_ok());
         let Json(resp) = result.unwrap();
         assert_serializeable(&resp);

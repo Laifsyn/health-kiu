@@ -18,8 +18,10 @@ type ResultPaged<T, E = ApiError> = ApiResult<dto::PaginatedResp<T>, E>;
 use axum::Json;
 
 use crate::domain::OutOfBoundsPagination;
-pub(in crate::routes) mod prelude {
-    //! Convenience re-exports for [`crate::routes`].
+
+/// Convenience re-exports for [`crate::routes`].
+mod prelude {
+    #![allow(unused_imports)]
     use std::sync::Arc;
 
     pub use dto::{PaginatedReq, PaginatedResp};
@@ -33,6 +35,7 @@ pub(in crate::routes) mod prelude {
     /// - [`Arc<T>`](std::sync::Arc) : Thread-safe reference-counting pointer.
     /// - [`ServerApp`](crate::app::ServerApp): The Server's application state.
     pub type StateApp = axum::extract::State<Arc<crate::app::ServerApp>>;
+
     /// Convenience alias for `Query<Option<PaginatedReq>>`.
     ///
     /// # Check more
