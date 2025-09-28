@@ -3,8 +3,8 @@ use itertools::Itertools;
 
 use super::prelude::*;
 
-/// Expects "doctors/{id}/by_specialty"
-pub async fn doctors_get_by_specialty(
+/// Requests doctors that have a given specialty.
+pub async fn doctors_by_specialty(
     Path(specialty_id): Path<i16>,
     pagination: MaybePaginated,
     State(app): StateApp,

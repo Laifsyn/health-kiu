@@ -1,9 +1,8 @@
 //! External User's interaction to the system.
 //!
-//! The [`Service (self)`](self) layer abstracts how the outside world (e.g.,
+//! The [`services (self)`](self) layer abstracts how the outside world (e.g.,
 //! API handlers) interacts with the system's core logic (e.g., repositories).
 
-pub(crate) mod doctor;
 pub mod error;
 /// Type alias for service results.
 pub type Result<T, E = ServiceError> = std::result::Result<T, E>;

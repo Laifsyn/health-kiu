@@ -30,7 +30,7 @@ mod test {
         init_env();
         logger_init();
 
-        let app = ServerApp::new_for_test().await;
+        let app = AppState::new_for_test().await;
         let pagination =
             PaginatedReq { offset: 0, count: PaginationLimit::new(5).unwrap() };
         let result = specialties_get(Query(pagination), State(app)).await;

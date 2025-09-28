@@ -1,4 +1,4 @@
-//! Service's route handlers and related DTO.
+//! API handlers. System's Presentation layer.
 mod doctor;
 mod dto;
 mod error;
@@ -34,7 +34,7 @@ mod prelude {
     /// - [`State<T>`](axum::extract::State) : State extractor from axum.
     /// - [`Arc<T>`](std::sync::Arc) : Thread-safe reference-counting pointer.
     /// - [`ServerApp`](crate::app::ServerApp): The Server's application state.
-    pub type StateApp = axum::extract::State<Arc<crate::app::ServerApp>>;
+    pub type StateApp = axum::extract::State<Arc<crate::app::AppState>>;
 
     /// Convenience alias for `Query<Option<PaginatedReq>>`.
     ///
@@ -45,7 +45,7 @@ mod prelude {
     /// - [`PaginatedReq`](crate::routes::dto::PaginatedReq) : Pagination
     ///   request DTO.
     pub type MaybePaginated = axum::extract::Query<Option<PaginatedReq>>;
-    pub use crate::app::ServerApp;
+    pub use crate::app::AppState;
     pub(crate) use crate::domain::dto as domain_dto;
     pub use crate::repo::*;
 }

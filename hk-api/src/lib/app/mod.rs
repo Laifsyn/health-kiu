@@ -1,13 +1,15 @@
+//! Describes
 mod seaorm_impl;
 
 use sea_orm::prelude::*;
 /// The main application state.
 /// Holds the database connection and other shared resources.
-pub struct ServerApp {
+pub struct AppState {
     repo: DatabaseConnection,
 }
 
-impl ServerApp {
+impl AppState {
+    #[cfg(test)]
     const TEST_DB_ENV_VAR: &'static str = "API_TEST_DB_URL";
 
     /// Creates a new instance of the application with a database connection

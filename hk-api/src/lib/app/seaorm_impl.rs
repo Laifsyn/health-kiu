@@ -5,12 +5,12 @@ use models::{doctor, especialidad};
 use sea_orm::prelude::*;
 use sea_orm::{QueryOrder, QuerySelect};
 
-use crate::ServerApp;
+use crate::AppState;
 use crate::domain::dto::{DoctorId, SpecialtyId};
 use crate::domain::*;
 use crate::repo::prelude::*;
 
-impl ServerApp {
+impl AppState {
     /// Builds a paginated select query for the given entity type `T`.
     ///
     /// ```rs, ignore
@@ -34,7 +34,7 @@ impl ServerApp {
     }
 }
 
-impl DoctorRepo for ServerApp {
+impl DoctorRepo for AppState {
     async fn get_doctors_by_specialty(
         &self,
         specialty_id: SpecialtyId,
@@ -62,7 +62,7 @@ impl DoctorRepo for ServerApp {
     }
 }
 
-impl SpecialtyRepo for ServerApp {
+impl SpecialtyRepo for AppState {
     /// Fetches a paginated list of specialties from the database ordered by id.
     async fn get_specialties(
         &self,
