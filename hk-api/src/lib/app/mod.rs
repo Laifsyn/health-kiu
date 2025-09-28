@@ -1,47 +1,23 @@
-//! Describes
-mod seaorm_impl;
+//! External User's interaction to the system.
+//!
+//! The [`application (self)`](self) layer abstracts how the outside world
+//! (e.g., API handlers) interacts with the business logic and its adapters
+//! (e.g., database or third parties APIs).
 
-use sea_orm::prelude::*;
-/// The main application state.
-/// Holds the database connection and other shared resources.
-pub struct AppState {
-    repo: DatabaseConnection,
-}
+pub use app_state::AppState;
+pub mod app_state;
+pub mod error;
 
-impl AppState {
-    #[cfg(test)]
-    const TEST_DB_ENV_VAR: &'static str = "API_TEST_DB_URL";
+/// Type alias for app's results.
+pub type Result<T, E = AppError> = std::result::Result<T, E>;
+pub(crate) use error::AppError;
 
-    /// Creates a new instance of the application with a database connection
-    /// using the [`Self::TEST_DB_ENV_VAR`] environment variable.
-    #[cfg(test)]
-    pub async fn new_for_test() -> std::sync::Arc<Self> {
-        use sea_orm::Database;
-        use tokio::sync::OnceCell as TokioOnceCell;
-
-        crate::init_env();
-        static DB: TokioOnceCell<DatabaseConnection> =
-            TokioOnceCell::const_new();
-        let db = DB
-            .get_or_init(|| {
-                async {
-                    let database_url = std::env::var(Self::TEST_DB_ENV_VAR)
-                        .unwrap_or_else(|_| {
-                            panic!(
-                                "{} must be set in order to run tests",
-                                Self::TEST_DB_ENV_VAR
-                            )
-                        });
-
-                    Database::connect(&database_url)
-                        .await
-                        .expect("Failed to connect to the database")
-                }
-            })
-            .await;
-        let db = db.clone();
-        std::sync::Arc::new(Self { repo: db })
-    }
-
-    pub fn connection(&self) -> &DatabaseConnection { &self.repo }
+/// Convenience re-exports for [`crate::app`].
+mod prelude {
+    #![allow(unused_imports)]
+    pub(crate) use crate::app::AppError as Error;
+    pub use crate::app::Result;
+    pub use crate::domain::dto::{DoctorId, SpecialtyId};
+    pub use crate::domain::{Name, Pagination};
+    pub use crate::repo::prelude::*;
 }

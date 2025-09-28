@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 
-/// Errors that can occur in the services layer.
-pub struct ServiceError {
+/// Errors that can occur in the application layer.
+pub struct AppError {
     source: ErrorKind,
     context: Option<Cow<'static, str>>,
 }
 
-impl ServiceError {
+impl AppError {
     /// Builds a [`ServiceError`] with no context.
     pub fn new(source: impl Into<ErrorKind>) -> Self {
         Self { source: source.into(), context: None }
@@ -37,7 +37,7 @@ impl ServiceError {
     }
 }
 
-impl<T> crate::ResultExt for Result<T, ServiceError> {
+impl<T> crate::ResultExt for Result<T, AppError> {
     type Context = Cow<'static, str>;
     type Value = T;
 

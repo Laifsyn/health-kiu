@@ -1,0 +1,55 @@
+-- Manual PostgreSQL script to insert 5 sample doctors with specialties
+-- Execute this after running the migration to populate sample data
+
+-- Insert sample users for doctors
+INSERT INTO "user" (id, cedula, passport) VALUES
+    ('01234567-89ab-cdef-0123-456789abcdef', '001-1234567-8', NULL),
+    ('01234567-89ab-cdef-0123-456789abcde0', '001-2345678-9', 'P12345678'),
+    ('01234567-89ab-cdef-0123-456789abcde1', '001-3456789-0', NULL),
+    ('01234567-89ab-cdef-0123-456789abcde2', '001-4567890-1', NULL),
+    ('01234567-89ab-cdef-0123-456789abcde3', '001-5678901-2', 'P87654321');
+
+-- Insert sample doctors
+INSERT INTO doctor (id, name, password_hash) VALUES
+    ('01234567-89ab-cdef-0123-456789abcdef', 'Dr. María González', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O'),
+    ('01234567-89ab-cdef-0123-456789abcde0', 'Dr. Carlos Rodríguez', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O'),
+    ('01234567-89ab-cdef-0123-456789abcde1', 'Dr. Ana Martínez', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O'),
+    ('01234567-89ab-cdef-0123-456789abcde2', 'Dr. Luis Fernández', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O'),
+    ('01234567-89ab-cdef-0123-456789abcde3', 'Dr. Carmen López', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O');
+
+-- Insert doctor specialties (linking doctors to their specialties)
+INSERT INTO doctor_especialidad (doctor_id, especialidad_id, certification_date, activo) VALUES
+    -- Dr. María González: Medicina General, Medicina Familiar
+    ('01234567-89ab-cdef-0123-456789abcdef', 1, '2020-01-15', true),
+    ('01234567-89ab-cdef-0123-456789abcdef', 2, '2020-01-15', true),
+
+    -- Dr. Carlos Rodríguez: Cardiología, Medicina Interna
+    ('01234567-89ab-cdef-0123-456789abcde0', 11, '2020-01-15', true),
+    ('01234567-89ab-cdef-0123-456789abcde0', 3, '2020-01-15', true),
+
+    -- Dr. Ana Martínez: Pediatría, Cardiología
+    ('01234567-89ab-cdef-0123-456789abcde1', 4, '2020-01-15', true),
+    ('01234567-89ab-cdef-0123-456789abcde1', 11, '2020-01-15', true),
+
+    -- Dr. Luis Fernández: Cirugía General, Neurología, Neurocirugía
+    ('01234567-89ab-cdef-0123-456789abcde2', 9, '2020-01-15', true),
+    ('01234567-89ab-cdef-0123-456789abcde2', 12, '2020-01-15', true),
+    ('01234567-89ab-cdef-0123-456789abcde2', 13, '2020-01-15', true),
+
+    -- Dr. Carmen López: Ginecología y Obstetricia, Dermatología
+    ('01234567-89ab-cdef-0123-456789abcde3', 6, '2020-01-15', true),
+    ('01234567-89ab-cdef-0123-456789abcde3', 20, '2020-01-15', true);
+
+-- Verify the data was inserted correctly
+SELECT
+    d.name as doctor_name,
+    u.cedula,
+    u.passport,
+    e.nombre as specialty_name,
+    de.certification_date,
+    de.activo
+FROM doctor d
+JOIN "user" u ON d.id = u.id
+JOIN doctor_especialidad de ON d.id = de.doctor_id
+JOIN especialidad e ON de.especialidad_id = e.id
+ORDER BY d.name, e.nombre;
