@@ -1,5 +1,6 @@
 mod entities;
 mod id;
+/// Flattened re-exports for easier access to Models' types.
 pub use entities::*;
 pub use id::Id;
 

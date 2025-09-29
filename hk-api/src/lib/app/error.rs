@@ -3,9 +3,9 @@ use std::borrow::Cow;
 /// Errors that can occur in the application layer.
 pub struct AppError {
     source: ErrorKind,
-    context: Option<Cow<'static, str>>,
+    context: Option<CowStr>,
 }
-
+type CowStr = Cow<'static, str>;
 impl AppError {
     /// Builds a [`ServiceError`] with no context.
     pub fn new(source: impl Into<ErrorKind>) -> Self {
@@ -13,23 +13,21 @@ impl AppError {
     }
 
     /// Builds a new [`ServiceError`] with additional context.
-    pub fn new_with_context<S: Into<Cow<'static, str>>>(
+    pub fn new_with_context<S: Into<CowStr>>(
         source: impl Into<ErrorKind>,
         ctx: S,
     ) -> Self {
         Self { context: Some(ctx.into()), source: source.into() }
     }
 
-    pub fn context<S: Into<Cow<'static, str>>>(mut self, ctx: S) -> Self {
+    pub fn context<S: Into<CowStr>>(mut self, ctx: S) -> Self {
         self.context = Some(ctx.into());
         self
     }
 
     /// Returns a closure that creates a [`ServiceError`] with the given
     /// context.
-    pub fn map_err_with<E>(
-        ctx: impl Into<Cow<'static, str>>,
-    ) -> impl FnOnce(E) -> Self
+    pub fn map_err_with<E>(ctx: impl Into<CowStr>) -> impl FnOnce(E) -> Self
     where
         E: Into<ErrorKind>,
     {
@@ -38,7 +36,7 @@ impl AppError {
 }
 
 impl<T> crate::ResultExt for Result<T, AppError> {
-    type Context = Cow<'static, str>;
+    type Context = CowStr;
     type Value = T;
 
     fn update_context<C: Into<Self::Context>>(self, ctx: C) -> Self {

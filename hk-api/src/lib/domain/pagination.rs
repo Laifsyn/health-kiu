@@ -37,3 +37,18 @@ impl Pagination {
 impl Default for Pagination {
     fn default() -> Self { Self { offset: 0, limit: 10 } }
 }
+
+#[cfg(test)]
+mod test {
+    pub use super::*;
+    #[test]
+    fn destructuring_position() {
+        let p = Pagination { offset: 10, limit: 20 };
+
+        let Pagination { offset, limit } = p.clone();
+        let (tuple_offset, tuple_limit) = p.clone().tuple();
+
+        assert_eq!(tuple_offset, offset);
+        assert_eq!(tuple_limit, limit);
+    }
+}

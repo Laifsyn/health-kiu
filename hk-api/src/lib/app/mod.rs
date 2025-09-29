@@ -4,21 +4,13 @@
 //! (e.g., API handlers) interacts with the business logic and its adapters
 //! (e.g., database or third parties APIs).
 
+/// Re-exports for `application layer`.
 pub use app_state::AppState;
 pub mod app_state;
 pub mod error;
-mod services;
+/// API for interacting with the services layer.
+pub mod services;
 
-/// Type alias for app's results.
-pub type Result<T, E = AppError> = std::result::Result<T, E>;
+/// Type alias for `application layer's` results.
+pub type AppResult<T, E = AppError> = std::result::Result<T, E>;
 pub(crate) use error::AppError;
-
-/// Convenience re-exports for [`crate::app`].
-mod prelude {
-    #![allow(unused_imports)]
-    pub(crate) use crate::app::AppError as Error;
-    pub use crate::app::Result;
-    pub use crate::domain::dto::{DoctorId, SpecialtyId};
-    pub use crate::domain::{Name, Pagination};
-    pub use crate::repo::prelude::*;
-}
