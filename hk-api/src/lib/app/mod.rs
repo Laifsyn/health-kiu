@@ -7,6 +7,7 @@
 pub use app_state::AppState;
 pub mod app_state;
 pub mod error;
+mod services;
 
 /// Type alias for app's results.
 pub type Result<T, E = AppError> = std::result::Result<T, E>;

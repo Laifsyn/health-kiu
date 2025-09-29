@@ -4,6 +4,8 @@ use sea_orm::prelude::*;
 /// The main application state.
 /// Holds the database connection and other shared resources.
 pub struct AppState {
+    /// Password
+    hasher: Arc<dyn PasswordHasher>,
     repo: DatabaseConnection,
 }
 
