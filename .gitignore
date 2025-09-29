@@ -4,6 +4,7 @@
 **/.data
 **/.env
 
+# ignore development env files
 !**/.env.development
 
 

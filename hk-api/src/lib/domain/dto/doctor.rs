@@ -7,13 +7,6 @@ use crate::domain::Name;
 #[derive(Clone)]
 pub struct DoctorId(Uuid);
 
-impl From<&DbDoctor> for DoctorId {
-    fn from(model: &DbDoctor) -> Self { DoctorId(model.id) }
-}
-impl From<DbDoctor> for DoctorId {
-    fn from(model: DbDoctor) -> Self { DoctorId::from(&model) }
-}
-
 #[derive(Clone)]
 pub struct Doctor {
     pub id: DoctorId,
