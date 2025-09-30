@@ -1,3 +1,4 @@
+use entities::Especialidad;
 use sea_orm::prelude::*;
 
 use super::prelude::*;

@@ -11,7 +11,7 @@ use crate::repo::OrmDB;
 pub struct AppState {
     /// Password Hasher
     pub(super) hasher: Arc<ArgonHasher>,
-    db: OrmDB,
+    pub(super) db: OrmDB,
 }
 
 impl AppState {

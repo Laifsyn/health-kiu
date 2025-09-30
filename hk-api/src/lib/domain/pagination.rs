@@ -38,6 +38,44 @@ impl Default for Pagination {
     fn default() -> Self { Self { offset: 0, limit: 10 } }
 }
 
+/// A Result of a paginated fetch to the database.
+pub struct Paged<T> {
+    /// Offset to use for the next page
+    pub next_offset: u64,
+    /// Requested page size.
+    pub requested_size: u16,
+    pub items: Vec<T>,
+}
+
+impl<T> Paged<T> {
+    pub fn new(items: Vec<T>, pagination: Pagination) -> Self {
+        Paged {
+            next_offset: pagination.offset + items.len() as u64,
+            requested_size: pagination.limit,
+            items,
+        }
+    }
+
+    /// Creates a new paged result by transforming the items using the provided
+    /// function.
+    pub fn new_with_transform<U>(
+        items: Vec<U>,
+        pagination: Pagination,
+        f: impl FnMut(U) -> T,
+    ) -> Self {
+        let items = items.into_iter().map(f).collect();
+        Paged::new(items, pagination)
+    }
+
+    /// Applies the provided function to transform the items in the paged
+    /// result.
+    pub fn transform<U>(self, f: impl FnMut(T) -> U) -> Paged<U> {
+        let Paged { next_offset, requested_size, items } = self;
+        let items = items.into_iter().map(f).collect();
+        Paged { next_offset, requested_size, items }
+    }
+}
+
 #[cfg(test)]
 mod test {
     pub use super::*;

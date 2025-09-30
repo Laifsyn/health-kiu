@@ -58,7 +58,7 @@ pub enum ErrorKind {
     #[error("Not Found")]
     NotFound,
     #[error("Database Error")]
-    DatabaseError,
+    DatabaseError(#[from] sea_orm::DbErr),
     #[error("Validation Error")]
     ValidationError,
     #[error("Unknown Error")]

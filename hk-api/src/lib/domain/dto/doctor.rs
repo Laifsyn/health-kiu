@@ -5,7 +5,7 @@ use sea_orm::prelude::*;
 
 use crate::domain::Name;
 #[derive(Clone)]
-pub struct DoctorId(Uuid);
+pub struct DoctorId(pub Uuid);
 
 #[derive(Clone)]
 pub struct Doctor {

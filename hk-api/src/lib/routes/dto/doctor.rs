@@ -1,12 +1,21 @@
-use models::doctor::Model as DbDoctorModel;
-use models::user::Model as DbUserModel;
 use sea_orm::prelude::Uuid;
+use serde::Serialize;
 
 use super::prelude::*;
-pub struct Doctor {
+#[derive(Serialize)]
+pub struct ApiDoctor {
     /// The unique identifier of the doctor.
     pub id: Uuid,
     pub cedula: String,
     pub passport: Option<String>,
-    pub name: dto::Name<'static>,
+    pub name: ApiName,
+}
+
+impl From<Doctor> for ApiDoctor {
+    fn from(doctor: Doctor) -> Self {
+        let Doctor { id, cedula, passport, nombre } = doctor;
+        let id = id.0;
+        let name = ApiName::from(nombre);
+        Self { id, cedula, passport, name }
+    }
 }

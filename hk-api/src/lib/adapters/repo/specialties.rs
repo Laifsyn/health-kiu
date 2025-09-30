@@ -1,3 +1,4 @@
+use entities::Especialidad;
 use sea_orm::prelude::*;
 
 use super::prelude::*;
@@ -14,7 +15,7 @@ impl SpecialtyRepo for OrmDB {
     async fn get_specialties(
         &self,
         paging: impl Into<Pagination>,
-    ) -> Result<Vec<especialidad::Model>, DbErr> {
+    ) -> Result<Vec<DbEspecialidad>, DbErr> {
         let paging = paging.into();
         self.select_paginated::<Especialidad>(paging)
             .order_by_asc(especialidad::Column::Id)

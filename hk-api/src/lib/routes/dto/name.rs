@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use serde::Serialize;
 
 use crate::domain;
@@ -11,29 +9,29 @@ use crate::domain;
 /// `{prefix} {given} {middle} {family} {suffix}`.
 ///
 /// [vcard-n-field]: https://en.wikipedia.org/wiki/VCard#Properties
-pub struct Name<'a> {
+pub struct ApiName {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub prefix: Option<&'a str>,
+    pub prefix: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub given: Option<&'a str>,
+    pub given: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub middle: Option<&'a str>,
+    pub middle: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub family: Option<&'a str>,
+    pub family: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub suffix: Option<&'a str>,
+    pub suffix: Option<String>,
     /// Full name reconstructed from the individual components.
-    pub full_name: Cow<'a, str>,
+    pub full_name: String,
 }
 
-impl<'a> From<&'a domain::Name> for Name<'a> {
-    fn from(name: &'a domain::Name) -> Self {
-        let family = name.family_name();
-        let given = name.given_name();
-        let middle = name.additional_names();
-        let prefix = name.honorific_prefixes();
-        let suffix = name.honorific_suffixes();
-        let full_name = name.full_name().into();
+impl From<domain::Name> for ApiName {
+    fn from(name: domain::Name) -> Self {
+        let family = name.family_name().map(Into::into);
+        let given = name.given_name().map(Into::into);
+        let middle = name.additional_names().map(Into::into);
+        let prefix = name.honorific_prefixes().map(Into::into);
+        let suffix = name.honorific_suffixes().map(Into::into);
+        let full_name = name.full_name();
 
         Self { prefix, given, middle, family, suffix, full_name }
     }
@@ -48,7 +46,7 @@ mod tests {
     fn test_json_serialization_complete_name() {
         let domain_name =
             domain::Name::new("Doe;John;Michael;Dr.;Jr.".to_string());
-        let dto_name = Name::from(&domain_name);
+        let dto_name = ApiName::from(domain_name);
 
         let json = serde_json::to_string(&dto_name).unwrap();
         let expected = r#"{"prefix":"Dr.","given":"John","middle":"Michael","family":"Doe","suffix":"Jr.","full_name":"Dr. John Michael Doe, Jr."}"#;
@@ -59,7 +57,7 @@ mod tests {
     #[test]
     fn test_json_serialization_partial_name() {
         let domain_name = domain::Name::new("Holland;Tom".to_string());
-        let dto_name = Name::from(&domain_name);
+        let dto_name = ApiName::from(domain_name);
 
         let json = serde_json::to_string(&dto_name).unwrap();
         let expected =
@@ -71,7 +69,7 @@ mod tests {
     #[test]
     fn test_json_serialization_single_name() {
         let domain_name = domain::Name::new("Einstein".to_string());
-        let dto_name = Name::from(&domain_name);
+        let dto_name = ApiName::from(domain_name);
 
         let json = serde_json::to_string(&dto_name).unwrap();
         let expected = r#"{"family":"Einstein","full_name":"Einstein"}"#;
@@ -82,7 +80,7 @@ mod tests {
     #[test]
     fn test_json_serialization_with_suffix_only() {
         let domain_name = domain::Name::new("Brown;Alice;;;PhD".to_string());
-        let dto_name = Name::from(&domain_name);
+        let dto_name = ApiName::from(domain_name);
 
         let json = serde_json::to_string(&dto_name).unwrap();
         let expected = r#"{"given":"Alice","family":"Brown","suffix":"PhD","full_name":"Alice Brown, PhD"}"#;

@@ -42,6 +42,13 @@ impl ApiError {
             Cow::Owned(ctx.to_string()),
         )
     }
+
+    pub fn not_found(item: impl Display) -> Self {
+        Self::new_with_context(
+            ErrorKind::NotFound,
+            Cow::Owned(format!("{item} not found")),
+        )
+    }
 }
 
 impl<T: Into<ErrorKind>> From<T> for ApiError {

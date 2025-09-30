@@ -5,7 +5,7 @@ pub enum Id {
     Specialty(i16),
 }
 
-impl TryFrom<Id> for domain_dto::SpecialtyId {
+impl TryFrom<Id> for SpecialtyId {
     type Error = ApiError;
 
     fn try_from(value: Id) -> std::result::Result<Self, Self::Error> {

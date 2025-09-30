@@ -1,5 +1,5 @@
-//!
 //! This layer is responsible for interacting with the database.
+//!
 //!
 //! It provides an abstraction over most the databases operations.
 mod doctors;
@@ -20,9 +20,8 @@ pub mod prelude {
     pub use models::especialidad::Model as DbEspecialidad;
     pub use models::habitacion::Model as DbHabitacion;
     pub use models::patient::Model as DbPatient;
-    pub use models::prelude::*;
     pub use models::user::Model as DbUser;
-    pub use models::*;
+    pub use models::{prelude as entities, *};
     pub use sea_orm::QueryOrder;
 
     pub use super::OrmDB;
