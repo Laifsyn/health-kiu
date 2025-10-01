@@ -1,46 +1,25 @@
-mod paginated;
+//! External User's interaction to the system.
+//!
+//! The [`application (self)`](self) layer abstracts how the outside world
+//! (e.g., API handlers) interacts with the business logic and its adapters
+//! (e.g., database or third parties APIs).
 
-use std::sync::Arc;
+/// Re-exports for `application layer`.
+pub use app_state::AppState;
+pub mod app_state;
+pub mod error;
+/// API for interacting with the services layer.
+pub mod services;
 
-use sea_orm::Database;
-use sea_orm::prelude::*;
-use tokio::sync::OnceCell as TokioOnceCell;
+/// Type alias for `application layer's` results.
+pub type AppResult<T, E = AppError> = std::result::Result<T, E>;
+pub(crate) use error::AppError;
 
-/// The main application state.
-/// Holds the database connection and other shared resources.
-pub struct ServerApp {
-    repo: DatabaseConnection,
-}
+/// Convenience re-exports for Services.
+pub mod services_prelude {
+    pub use services::doctor::DoctorService;
+    pub use services::password_hash::PasswordHashService;
+    pub use services::specialties::SpecialtyService;
 
-impl ServerApp {
-    const TEST_DB_ENV_VAR: &'static str = "API_TEST_DB_URL";
-
-    /// Creates a new instance of the application with a database connection
-    /// using the [`Self::TEST_DB_ENV_VAR`] environment variable.
-    pub async fn new_for_test() -> Arc<Self> {
-        crate::init_env();
-        static DB: TokioOnceCell<DatabaseConnection> =
-            TokioOnceCell::const_new();
-        let db = DB
-            .get_or_init(|| {
-                async {
-                    let database_url = std::env::var(Self::TEST_DB_ENV_VAR)
-                        .unwrap_or_else(|_| {
-                            panic!(
-                                "{} must be set in order to run tests",
-                                Self::TEST_DB_ENV_VAR
-                            )
-                        });
-
-                    Database::connect(&database_url)
-                        .await
-                        .expect("Failed to connect to the database")
-                }
-            })
-            .await;
-        let db = db.clone();
-        Arc::new(Self { repo: db })
-    }
-
-    pub fn connection(&self) -> &DatabaseConnection { &self.repo }
+    use super::services;
 }

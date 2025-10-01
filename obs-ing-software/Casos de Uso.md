@@ -38,7 +38,7 @@
 - [ ] Cerrar sesión ***NP***
 
 #### Consulta de Información
-- [ ] Consultar especialidades médicas disponibles
+- [x] Consultar especialidades médicas disponibles
 - [ ] Consultar médicos disponibles por especialidad
 - [ ] Ver horarios disponibles de médicos
 - [ ] Consultar ubicación de centros de atención ***NP***

@@ -1,8 +1,10 @@
-pub use app::ServerApp;
-pub use utils::*;
+pub use app::AppState;
+pub use utils::{ResultExt, *};
 
-mod app;
+pub use crate::adapters::{http, repo};
+
+mod adapters;
+pub mod app;
 pub(crate) mod domain;
 mod routes;
-pub mod services;
 mod utils;

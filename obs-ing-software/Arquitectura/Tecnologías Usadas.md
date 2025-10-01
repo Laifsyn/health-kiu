@@ -13,3 +13,4 @@
 
 - **Basado en Web**: usando Nuxtjs. 
 - Dispositivos objetivo: **Tabletas/Pantallas táctiles y dispositivos móviles**.
+![[backend-flowchart.png]]

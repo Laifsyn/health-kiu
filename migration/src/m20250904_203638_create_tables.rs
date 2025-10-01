@@ -106,6 +106,9 @@ impl MigrationTrait for Migration {
             lwc("Failed to relate cita.asegurado_id -> asegurado.id"),
         )?;
 
+        // Populate sample doctors with specialties
+        Doctor::populate_sample_data(manager).await?;
+
         Ok(())
     }
 
@@ -224,6 +227,124 @@ impl Doctor {
 
     pub fn drop_table() -> TableDropStatement {
         Table::drop().table(Doctor::Table).if_exists().to_owned()
+    }
+
+    async fn populate_sample_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
+
+        // Sample doctors data: (user_id, cedula, passport, name, password_hash, specialties)
+        let doctors = [
+            (
+                "01234567-89ab-cdef-0123-456789abcdef",
+                "001-1234567-8",
+                None,
+                "Dr. María González",
+                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O", // bcrypt of "password123"
+                vec![1, 2], // Medicina General, Medicina Familiar
+            ),
+            (
+                "01234567-89ab-cdef-0123-456789abcde0",
+                "001-2345678-9",
+                Some("P12345678"),
+                "Dr. Carlos Rodríguez",
+                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                vec![11, 3], // Cardiología, Medicina Interna
+            ),
+            (
+                "01234567-89ab-cdef-0123-456789abcde1",
+                "001-3456789-0",
+                None,
+                "Dr. Ana Martínez",
+                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                vec![4, 11], // Pediatría, Cardiología
+            ),
+            (
+                "01234567-89ab-cdef-0123-456789abcde2",
+                "001-4567890-1",
+                None,
+                "Dr. Luis Fernández",
+                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                vec![9, 12, 13], // Cirugía General, Neurología, Neurocirugía
+            ),
+            (
+                "01234567-89ab-cdef-0123-456789abcde3",
+                "001-5678901-2",
+                Some("P87654321"),
+                "Dr. Carmen López",
+                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                vec![6, 20], // Ginecología y Obstetricia, Dermatología
+            ),
+        ];
+
+        // Insert users first
+        let mut user_insert = Query::insert()
+            .into_table(User::Table)
+            .columns([User::Id, User::Cedula, User::Passport])
+            .to_owned();
+
+        for (user_id, cedula, passport, _, _, _) in doctors.iter() {
+            let passport_value = match passport {
+                Some(p) => SimpleExpr::Value((*p).into()),
+                None => SimpleExpr::Value(Value::String(None)),
+            };
+            user_insert.values_panic([
+                SimpleExpr::Value((*user_id).into()),
+                SimpleExpr::Value((*cedula).into()),
+                passport_value,
+            ]);
+        }
+
+        manager
+            .exec_stmt(user_insert)
+            .await
+            .map_err(lwc("Failed to insert sample users for doctors"))?;
+
+        // Insert doctors
+        let mut doctor_insert = Query::insert()
+            .into_table(Doctor::Table)
+            .columns([Doctor::Id, Doctor::Name, Doctor::PasswordHash])
+            .to_owned();
+
+        for (user_id, _, _, name, password_hash, _) in doctors.iter() {
+            doctor_insert.values_panic([
+                SimpleExpr::Value((*user_id).into()),
+                SimpleExpr::Value((*name).into()),
+                SimpleExpr::Value((*password_hash).into()),
+            ]);
+        }
+
+        manager
+            .exec_stmt(doctor_insert)
+            .await
+            .map_err(lwc("Failed to insert sample doctors"))?;
+
+        // Insert doctor specialties
+        let mut specialty_insert = Query::insert()
+            .into_table(DoctorEspecialidad::Table)
+            .columns([
+                DoctorEspecialidad::DoctorId,
+                DoctorEspecialidad::EspecialidadId,
+                DoctorEspecialidad::CertificationDate,
+                DoctorEspecialidad::Activo,
+            ])
+            .to_owned();
+
+        for (user_id, _, _, _, _, specialties) in doctors.iter() {
+            for specialty_id in specialties.iter() {
+                specialty_insert.values_panic([
+                    SimpleExpr::Value((*user_id).into()),
+                    SimpleExpr::Value((*specialty_id).into()),
+                    SimpleExpr::Value("2020-01-15".into()), // Sample certification date
+                    SimpleExpr::Value(true.into()),
+                ]);
+            }
+        }
+
+        manager
+            .exec_stmt(specialty_insert)
+            .await
+            .map_err(lwc("Failed to insert doctor specialties"))?;
+
+        Ok(())
     }
 }
 

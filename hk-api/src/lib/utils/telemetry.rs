@@ -29,7 +29,7 @@ pub fn logger_init() {
             .with_env_filter(filter)
             .with_target(true)
             .with_timer(ChronoLocal::new(TIME_FORMAT.to_string()))
-            .init();
+            .try_init();
     } else {
         tracing_subscriber::fmt()
             .with_ansi(true)
@@ -39,7 +39,7 @@ pub fn logger_init() {
             .with_env_filter(filter)
             .with_target(true)
             .with_timer(ChronoLocal::new(TIME_FORMAT.to_string()))
-            .init();
+            .try_init();
     }
     if let Some(e) = errs {
         tracing::error!("{}", e);

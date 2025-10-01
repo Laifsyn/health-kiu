@@ -1,8 +1,9 @@
+use std::marker::PhantomData;
 use std::num::NonZero;
 
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{OutOfBoundsPagination, Pagination};
+use crate::domain::{OutOfBoundsPagination, Paged, Pagination};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 #[derive(Deserialize)]
@@ -90,7 +91,7 @@ impl Default for PaginationLimit {
 /// Structure representing a paginated response.
 #[derive(Debug)]
 #[derive(Serialize)]
-pub struct PaginatedResp<T> {
+pub struct PagedResp<T = PhantomData<()>> {
     /// The size of the page. Equivalent to [`Self::items.len()`][Self::items]
     pub page_size: u64,
     /// The offset to use for the next page, if any.
@@ -99,44 +100,91 @@ pub struct PaginatedResp<T> {
     pub items: Vec<T>,
 }
 
-impl<T> PaginatedResp<T> {
-    pub fn from_items(
-        mut items: Vec<T>,
-        pagination: PaginatedReq,
-    ) -> PaginatedResp<T> {
-        let count = pagination.count.get() as usize;
-        let has_more = items.len() > count;
-
-        debug_assert!(
-            items.len() <= count + 1,
-            "Backend/Database should've at most fetched `count + 1` items"
-        );
-
-        // Truncate to exact count if we have more
-        items.truncate(count);
-
-        let page_size = items.len() as u64;
-
-        PaginatedResp {
-            page_size,
-            next_offset: Some(pagination.offset + page_size),
-            has_more,
-            items,
+impl<T> PagedResp<T> {
+    pub fn from_paged(paged_result: Paged<T>) -> Self {
+        let Paged { mut next_offset, requested_size, mut items } = paged_result;
+        let has_more = items.len() as u16 == requested_size;
+        if has_more {
+            items.pop();
+            next_offset = next_offset.saturating_sub(1);
         }
+        let page_size = items.len() as u64;
+        let next_offset = if has_more { Some(next_offset) } else { None };
+
+        PagedResp { page_size, next_offset, has_more, items }
+    }
+
+    pub fn from_paged_opt(paged_result: Option<Paged<T>>) -> Self {
+        match paged_result {
+            Some(paged) => Self::from_paged(paged),
+            None => Self::empty(),
+        }
+    }
+
+    pub fn from_paged_with_transform<U>(
+        paged_result: Paged<U>,
+        f: impl FnMut(U) -> T,
+    ) -> Self {
+        let paged_result = paged_result.transform(f);
+        Self::from_paged(paged_result)
+    }
+
+    pub const fn empty() -> Self {
+        PagedResp {
+            page_size: 0,
+            next_offset: None,
+            has_more: false,
+            items: Vec::new(),
+        }
+    }
+
+    pub const fn json(self) -> axum::Json<Self> { axum::Json(self) }
+}
+
+impl<T> From<Paged<T>> for PagedResp<T> {
+    /// Delegates to [`PagedResp::from_paged`]
+    fn from(paged_result: Paged<T>) -> Self {
+        PagedResp::from_paged(paged_result)
+    }
+}
+impl<T> From<Option<Paged<T>>> for PagedResp<T> {
+    /// Delegates to [`PagedResp::from_paged_opt`]
+    fn from(paged_result: Option<Paged<T>>) -> Self {
+        PagedResp::from_paged_opt(paged_result)
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    #[test]
     fn test_conversion() {
-        let req = PaginatedReq {
-            offset: 5,
-            count: PaginationLimit::new(20).unwrap(),
-        };
+        let req = PaginatedReq::default();
         let pagination = Pagination::from(req.clone());
 
-        assert_eq!(pagination.offset, req.offset);
-        assert_eq!(pagination.limit, req.count.get() + 1); // +1 for checking more items
+        assert_eq!(pagination.offset, req.offset, "No changes to offset");
+        assert_eq!(
+            pagination.limit,
+            req.count.get() + 1,
+            "Expects conversion count to be +1 higher"
+        ); // +1 for checking more items
+    }
+
+    #[test]
+    fn assert_count_is_len() {
+        let items = vec![1, 2, 3, 4];
+        let req = PaginatedReq {
+            offset: 0,
+            count: PaginationLimit::new(items.len() as u16 - 1).unwrap(),
+        };
+
+        let fetch_result =
+            Paged::new(items.clone(), req.clone().into_pagination());
+        let resp = PagedResp::from_paged(fetch_result);
+        assert_eq!(
+            resp.page_size as usize,
+            resp.items.len(),
+            "Expects page-size to be equal to items.len()"
+        );
     }
 }

@@ -12,6 +12,7 @@ name = "hk_api"
 path = "src/main.rs"
 
 [dependencies]
+argon2 = "0.5.3"
 axum = "0.8.4"
 axum-server = { version = "0.7.2", features = ["rustls", "tls-rustls"] }
 chrono = { workspace = true, features = ["serde"] }
@@ -42,3 +43,6 @@ validator = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+
+[lints.rust]
+unused = "warn"
