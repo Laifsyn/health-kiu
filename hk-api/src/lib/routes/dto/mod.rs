@@ -15,12 +15,13 @@ pub use name::*;
 pub use pagination::*;
 pub use specialty::*;
 
+/// Convenience re-exports for the dto's layer in [`crate::routes::dto`].
 mod prelude {
     #![allow(unused_imports)]
     pub use super::ApiName;
-    pub use crate::domain::Paged;
     pub use crate::domain::dto::doctor::Doctor;
     pub use crate::domain::dto::specialty::Specialty;
     pub use crate::domain::dto::{DoctorId, SpecialtyId};
+    pub(crate) use crate::domain::{Paged, dto as domain_dto};
     pub use crate::routes::{ApiError, ErrorKind};
 }

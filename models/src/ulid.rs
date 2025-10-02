@@ -12,7 +12,10 @@ use core::fmt;
 use std::convert::From;
 use std::ops::{Deref, DerefMut};
 
+use sea_orm::sea_query;
 use uuid::Uuid;
+
+use crate::doctor;
 
 /// A newtype wrapper around `ulid::Ulid` to be compatible with sea-orm's type
 /// model.
@@ -51,7 +54,9 @@ impl Deref for Ulid {
         id
     }
 }
-
+impl From<Ulid> for doctor::PrimaryKey {
+    fn from(source: Ulid) -> Self { Self::Id(source) }
+}
 impl DerefMut for Ulid {
     fn deref_mut(&mut self) -> &mut Self::Target {
         let Self(id) = self;
@@ -63,7 +68,7 @@ impl From<Uuid> for Ulid {
     fn from(source: Uuid) -> Self { Self::from_uuid(source) }
 }
 
-impl From<Ulid> for sea_orm::Value {
+impl From<Ulid> for sea_query::Value {
     fn from(source: Ulid) -> Self {
         let uuid = Uuid::from_bytes(source.to_bytes());
         sea_orm::Value::from(uuid)
@@ -101,5 +106,12 @@ impl sea_orm::sea_query::ValueType for Ulid {
 impl sea_orm::sea_query::Nullable for Ulid {
     fn null() -> sea_orm::Value {
         <Uuid as sea_orm::sea_query::Nullable>::null()
+    }
+}
+
+impl fmt::Display for Ulid {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self(id) = self;
+        write!(f, "{id}")
     }
 }

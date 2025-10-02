@@ -13,10 +13,11 @@ type Result<T, E = ApiError> = std::result::Result<T, E>;
 /// ['Result'](core::result::Result).
 type ApiResult<T, E = ApiError> = std::result::Result<Json<T>, E>;
 /// Type alias for `paginated` response. It's a specialization to [`ApiResult`].
-type ResultPaged<T, E = ApiError> = ApiResult<dto::PagedResp<T>, E>;
+type ApiResultPaged<T, E = ApiError> = ApiResult<dto::PagedResp<T>, E>;
 
-use axum::Json;
+use axum::{Json, Router};
 
+use crate::AppState;
 use crate::app::AppError;
 use crate::domain::OutOfBoundsPagination;
 
@@ -25,6 +26,7 @@ mod prelude {
     #![allow(unused_imports)]
     use std::sync::Arc;
 
+    use axum::extract;
     pub use dto::{PagedResp, PaginatedReq};
 
     pub use super::*;
@@ -32,14 +34,13 @@ mod prelude {
     pub use crate::app::services_prelude::*;
     pub(crate) use crate::domain::dto as domain_dto;
     pub use crate::repo::*;
-    /// Convenience alias for `State<Arc<AppState>>`.
+    /// Convenience alias for `State<AppState>`.
     ///
     /// # Check more
     ///
     /// - [`State<T>`](axum::extract::State) : State extractor from axum.
-    /// - [`Arc<T>`](std::sync::Arc) : Thread-safe reference-counting pointer.
     /// - [`AppState`](crate::app::AppState): The Server's application state.
-    pub type StateApp = axum::extract::State<Arc<crate::app::AppState>>;
+    pub type StateApp = extract::State<crate::app::AppState>;
 
     /// Convenience Alias for Paginated Queries.
     ///
@@ -49,7 +50,7 @@ mod prelude {
     ///   type.
     /// - [`PaginatedReq`](crate::routes::dto::PaginatedReq) : Pagination
     ///   request DTO.
-    pub type MaybePaginated = axum::extract::Query<Option<PaginatedReq>>;
+    pub type MaybePaginated = extract::Query<Option<PaginatedReq>>;
 }
 
 impl From<OutOfBoundsPagination> for ErrorKind {
@@ -61,4 +62,8 @@ impl From<OutOfBoundsPagination> for ErrorKind {
 
 impl From<AppError> for ApiError {
     fn from(_value: AppError) -> Self { todo!("Finish Convert implementation") }
+}
+
+pub fn router() -> Router<AppState> {
+    Router::new().nest("/doctor", doctor::router())
 }

@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use super::prelude::*;
 #[derive(Clone)]
+#[repr(transparent)]
 pub struct SpecialtyId(pub i16);
 
 impl SpecialtyId {

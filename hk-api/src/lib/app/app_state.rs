@@ -8,6 +8,7 @@ use crate::adapters::crypto::ArgonHasher;
 use crate::repo::OrmDB;
 /// The main application state.
 /// Holds the database connection and other shared resources.
+#[derive(Clone)]
 pub struct AppState {
     /// Password Hasher
     pub(super) hasher: Arc<ArgonHasher>,

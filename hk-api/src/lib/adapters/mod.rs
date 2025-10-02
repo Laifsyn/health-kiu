@@ -1,4 +1,4 @@
-//! Infrastructure-dependant implementations for tha
+//! Newtype wrappers.
 pub mod crypto;
 /// HTTP clients for third-party services.
 pub mod http;

@@ -1,15 +1,18 @@
-//! This layer is responsible for interacting with the database.
+//! Interaction Contract with the database.
 //!
 //!
 //! It provides an abstraction over most the databases operations.
 mod doctors;
 mod specialties;
+mod user;
 
-pub use doctors::DoctorRepo;
-pub use specialties::SpecialtyRepo;
+pub(crate) use doctors::DoctorRepo;
+pub(crate) use specialties::SpecialtyRepo;
 
+/// Type alias for repository results.
+pub type Result<T, E = sea_orm::DbErr> = std::result::Result<T, E>;
 use crate::domain::Pagination;
-pub trait Repository: DoctorRepo + SpecialtyRepo {}
+// pub trait Repository: DoctorRepo + SpecialtyRepo {}
 /// Exports repositories, and re-exports database models.
 pub mod prelude {
     #![allow(unused_imports)]
@@ -25,8 +28,9 @@ pub mod prelude {
     pub use sea_orm::QueryOrder;
 
     pub use super::OrmDB;
-    pub use super::doctors::DoctorRepo;
-    pub use super::specialties::SpecialtyRepo;
+    pub(crate) use super::doctors::DoctorRepo;
+    pub(crate) use super::specialties::SpecialtyRepo;
+    pub use crate::{Ulid, repo};
 }
 
 use sea_orm::prelude::*;

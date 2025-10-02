@@ -27,7 +27,7 @@ impl AppError {
 
     /// Returns a closure that creates a [`ServiceError`] with the given
     /// context.
-    pub fn map_err_with<E>(ctx: impl Into<CowStr>) -> impl FnOnce(E) -> Self
+    pub fn err_with<E>(ctx: impl Into<CowStr>) -> impl FnOnce(E) -> Self
     where
         E: Into<ErrorKind>,
     {
@@ -50,6 +50,13 @@ impl<T> crate::ResultExt for Result<T, AppError> {
     {
         self.map_err(|e| e.context(f()))
     }
+}
+
+impl<T> From<T> for AppError
+where
+    T: Into<ErrorKind>,
+{
+    fn from(value: T) -> Self { Self::new(value) }
 }
 
 #[derive(Debug, thiserror::Error)]

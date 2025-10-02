@@ -14,8 +14,9 @@ pub struct ApiDoctor {
 impl From<Doctor> for ApiDoctor {
     fn from(doctor: Doctor) -> Self {
         let Doctor { id, cedula, passport, nombre } = doctor;
-        let id = id.0;
+        let id = id.0.as_uuid();
         let name = ApiName::from(nombre);
+
         Self { id, cedula, passport, name }
     }
 }

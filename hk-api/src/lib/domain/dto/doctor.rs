@@ -3,9 +3,11 @@ use db::user::Model as DbUser;
 use models as db;
 use sea_orm::prelude::*;
 
+use crate::Ulid;
 use crate::domain::Name;
 #[derive(Clone)]
-pub struct DoctorId(pub Uuid);
+#[repr(transparent)]
+pub struct DoctorId(pub Ulid);
 
 #[derive(Clone)]
 pub struct Doctor {
@@ -19,6 +21,11 @@ impl Doctor {
     pub fn from_models(doctor: DbDoctor, user: DbUser) -> Self {
         let DbDoctor { id: _, name, password_hash: _ } = doctor;
         let DbUser { id, cedula, passport } = user;
-        Doctor { id: DoctorId(id), cedula, passport, nombre: Name::new(name) }
+        Doctor {
+            id: DoctorId(id.into()),
+            cedula,
+            passport,
+            nombre: Name::new(name),
+        }
     }
 }
