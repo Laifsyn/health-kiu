@@ -30,7 +30,8 @@ pub mod prelude {
     pub use super::OrmDB;
     pub(crate) use super::doctors::DoctorRepo;
     pub(crate) use super::specialties::SpecialtyRepo;
-    pub use crate::{Ulid, repo};
+    pub use crate::Ulid;
+    pub use crate::repo::Result;
 }
 
 use sea_orm::prelude::*;

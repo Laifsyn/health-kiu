@@ -54,9 +54,15 @@ impl Deref for Ulid {
         id
     }
 }
-impl From<Ulid> for doctor::PrimaryKey {
-    fn from(source: Ulid) -> Self { Self::Id(source) }
+
+impl From<Ulid> for Uuid {
+    fn from(value: Ulid) -> Self { value.as_uuid() }
 }
+
+impl From<Ulid> for ulid::Ulid {
+    fn from(value: Ulid) -> Self { value.0 }
+}
+
 impl DerefMut for Ulid {
     fn deref_mut(&mut self) -> &mut Self::Target {
         let Self(id) = self;

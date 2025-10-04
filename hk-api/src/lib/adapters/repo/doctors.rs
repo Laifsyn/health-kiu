@@ -14,14 +14,14 @@ pub(crate) trait DoctorRepo {
         &self,
         specialty_id: SpecialtyId,
         pagination: Pagination,
-    ) -> repo::Result<Option<(DbEspecialidad, Vec<DoctorUser>)>>;
+    ) -> Result<Option<(DbEspecialidad, Vec<DoctorUser>)>>;
 
     async fn get_doctors(
         &self,
         pagination: Pagination,
-    ) -> repo::Result<Vec<DoctorUser>>;
+    ) -> Result<Vec<DoctorUser>>;
 
-    async fn get_doctor(&self, id: Ulid) -> repo::Result<Option<DoctorUser>>;
+    async fn get_doctor(&self, id: Ulid) -> Result<Option<DoctorUser>>;
 }
 
 impl DoctorRepo for OrmDB {
@@ -31,7 +31,7 @@ impl DoctorRepo for OrmDB {
         &self,
         specialty_id: SpecialtyId,
         pagination: Pagination,
-    ) -> repo::Result<Option<(DbEspecialidad, Vec<DoctorUser>)>> {
+    ) -> Result<Option<(DbEspecialidad, Vec<DoctorUser>)>> {
         let results = self
             .select_paginated::<doctor::Entity>(pagination)
             .find_also_related(especialidad::Entity)
@@ -64,25 +64,41 @@ impl DoctorRepo for OrmDB {
     async fn get_doctors(
         &self,
         pagination: Pagination,
-    ) -> repo::Result<Vec<DoctorUser>> {
-        let total = doctor::Entity::find().count(self.connection()).await?;
+    ) -> Result<Vec<DoctorUser>> {
         let doctors = self
             .select_paginated::<doctor::Entity>(pagination)
+            .find_also_related(user::Entity)
             .order_by_asc(doctor::Column::Name)
             .all(self.connection())
             .await?;
-
-        // Ok(doctors)
-        todo!()
+        let doctors =
+            doctors.into_iter().filter_map(flatten_doctor_user).collect();
+        Ok(doctors)
     }
 
-    async fn get_doctor(&self, id: Ulid) -> repo::Result<Option<DoctorUser>> {
-        let r = doctor::Entity::find_by_id(id.as_uuid())
+    async fn get_doctor(&self, id: Ulid) -> Result<Option<DoctorUser>> {
+        doctor::Entity::find_by_id(id)
             .find_also_related(user::Entity)
             .one(self.connection())
-            .await;
-        todo!()
+            .await
+            .map(|t| t.and_then(flatten_doctor_user))
     }
+}
+
+/// Helper function to flatten a tuple of Option<([`Doctor`](DbDoctor),
+/// Option<[`User`](DbUser)>)>)
+fn flatten_doctor_user(
+    doctor_user: (DbDoctor, Option<DbUser>),
+) -> Option<DoctorUser> {
+    let (doctor, user) = doctor_user?;
+    if let None = user {
+        tracing::warn!(
+            "Doctor with id {} has no associated user record",
+            doctor.id
+        );
+        return None;
+    }
+    user.map(|user| (doctor, user))
 }
 
 #[cfg(test)]
