@@ -43,6 +43,7 @@ tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
 validator = { workspace = true, features = ["derive"] }
 either = { version = "1.15.0", features = ["serde"] }
+secrecy = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }

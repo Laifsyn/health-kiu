@@ -4,7 +4,6 @@
 //! It provides an abstraction over most the databases operations.
 mod doctors;
 mod specialties;
-mod user;
 
 pub(crate) use doctors::DoctorRepo;
 pub(crate) use specialties::SpecialtyRepo;

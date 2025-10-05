@@ -1,41 +1,39 @@
-use db::doctor::Model as DbDoctor;
-use db::user::Model as DbUser;
-use models as db;
+use models::Ulid;
 use secrecy::SecretString;
 
-use crate::Ulid;
+use super::prelude::*;
 use crate::domain::Name;
 use crate::domain::dto::utils::id_wrapper;
 
 id_wrapper! {
     #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct DoctorId(pub Ulid)
+    pub struct PatientId(pub Ulid)
 }
 
-impl From<DoctorId> for sea_orm::Value {
-    fn from(id: DoctorId) -> Self { sea_orm::Value::from(id.0) }
+impl From<PatientId> for sea_orm::Value {
+    fn from(id: PatientId) -> Self { sea_orm::Value::from(id.0) }
 }
 
 #[derive(Clone)]
-pub struct Doctor {
-    pub id: DoctorId,
+pub struct Patient {
+    pub id: PatientId,
     pub cedula: String,
     pub passport: Option<String>,
     pub nombre: Name,
     pub password_hash: SecretString,
 }
 
-impl Doctor {
-    pub fn from_models(doctor: DbDoctor, user: DbUser) -> Self {
+impl Patient {
+    pub fn from_models(patient: DbPatient, user: DbUser) -> Self {
         // FIXME: We should return an error instead of panicking.
         assert_eq!(
-            doctor.id, user.id,
-            "Doctor and User models must have the same id"
+            patient.id, user.id,
+            "Patient and User models must have the same id"
         );
-        let DbDoctor { id: _, name, password_hash } = doctor;
+        let DbPatient { id: _, name, password_hash } = patient;
         let DbUser { id, cedula, passport } = user;
-        Doctor {
-            id: DoctorId(id.into()),
+        Patient {
+            id: PatientId::from_inner(id.into()),
             cedula,
             passport,
             nombre: Name::new(name),

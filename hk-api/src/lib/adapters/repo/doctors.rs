@@ -1,4 +1,3 @@
-use entities::Especialidad;
 use sea_orm::prelude::*;
 
 use super::prelude::*;
@@ -32,32 +31,44 @@ impl DoctorRepo for OrmDB {
         specialty_id: SpecialtyId,
         pagination: Pagination,
     ) -> Result<Option<(DbEspecialidad, Vec<DoctorUser>)>> {
-        let results = self
-            .select_paginated::<doctor::Entity>(pagination)
-            .find_also_related(especialidad::Entity)
-            .find_also_related(user::Entity)
-            .filter(especialidad::Column::Id.eq(specialty_id.0))
-            .order_by_asc(doctor::Column::Name)
-            .all(self.connection())
-            .await?;
+        let results: Vec<(DbDoctor, Option<DbEspecialidad>, Option<DbUser>)> =
+            self.select_paginated::<doctor::Entity>(pagination)
+                .find_also_related(especialidad::Entity)
+                .find_also_related(user::Entity)
+                .filter(especialidad::Column::Id.eq(specialty_id))
+                .order_by_asc(doctor::Column::Name)
+                .all(self.connection())
+                .await?
+                .into_iter()
+                .filter(|(_, e, _)| e.is_some())
+                .collect();
 
         // extract the first specialty (if any) and all associated doctors
-        // let Some(specialty) =
-        //     results.first().map(|(especialidad, _)| especialidad.clone())
-        // else {
-        //     return Ok(None);
-        // };
+        let Some(specialty) = results
+            .first()
+            .and_then(|(_, especialidad, ..)| especialidad.clone())
+        else {
+            return Ok(None);
+        };
 
-        // assert!(
-        //     results.iter().all(|(e, _)| e.id == specialty.id),
-        //     "Fetched doctors must be members of the same specialty"
-        // );
+        assert!(
+            results.iter().all(|(_, _, user)| user.is_some()),
+            "All doctors must have an associated user record"
+        );
 
-        // let doctors: Vec<DoctorUser> =
-        //     results.into_iter().filter_map(|(_, doctor)| doctor).collect();
+        assert!(
+            results
+                .iter()
+                .all(|(_, e, ..)| e.as_ref().unwrap().id == specialty.id),
+            "Fetched doctors must be members of the same specialty"
+        );
 
-        // Ok(Some((specialty, doctors)))
-        todo!()
+        let docs: Vec<DoctorUser> = results
+            .into_iter()
+            .filter_map(|(d, _, u)| u.map(|u| (d, u)))
+            .collect();
+
+        Ok(Some((specialty, docs)))
     }
 
     /// Retrieves a paginated list of doctors, ordered by name.
@@ -85,13 +96,13 @@ impl DoctorRepo for OrmDB {
     }
 }
 
-/// Helper function to flatten a tuple of Option<([`Doctor`](DbDoctor),
-/// Option<[`User`](DbUser)>)>)
+/// Helper function to flatten a tuple of ([`Doctor`](DbDoctor),
+/// Option<[`User`](DbUser)>) into an Option<([`DoctorUser`])>
 fn flatten_doctor_user(
     doctor_user: (DbDoctor, Option<DbUser>),
 ) -> Option<DoctorUser> {
-    let (doctor, user) = doctor_user?;
-    if let None = user {
+    let (doctor, user) = doctor_user;
+    if user.is_none() {
         tracing::warn!(
             "Doctor with id {} has no associated user record",
             doctor.id
@@ -105,7 +116,7 @@ fn flatten_doctor_user(
 mod tests {
 
     use sea_orm::prelude::*;
-    use sea_orm::{DbBackend, JoinType, QuerySelect, QueryTrait};
+    use sea_orm::{DbBackend, QueryTrait};
 
     use super::*;
     #[test]

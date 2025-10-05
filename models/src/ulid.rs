@@ -19,7 +19,7 @@ use crate::doctor;
 
 /// A newtype wrapper around `ulid::Ulid` to be compatible with sea-orm's type
 /// model.
-#[derive(Clone, PartialEq, Eq, Copy, Hash)]
+#[derive(Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct Ulid(pub ulid::Ulid);
 
