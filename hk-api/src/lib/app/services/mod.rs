@@ -16,8 +16,7 @@ mod prelude {
     pub use crate::AppState;
     pub(crate) use crate::app::AppError;
     pub use crate::app::AppResult;
-    pub use crate::domain::dto::{DoctorId, SpecialtyId};
+    pub use crate::domain::dto::{SpecialtyId, UserId};
     pub use crate::domain::{Name, Pagination};
     pub use crate::repo::prelude::*;
 }
-

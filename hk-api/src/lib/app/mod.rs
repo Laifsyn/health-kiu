@@ -17,7 +17,7 @@ pub(crate) use error::AppError;
 
 /// Convenience re-exports for Services.
 pub mod services_prelude {
-    pub use services::doctor::DoctorService;
+    pub(crate) use services::doctor::DoctorService;
     pub use services::password_hash::PasswordHashService;
     pub use services::specialties::SpecialtyService;
 

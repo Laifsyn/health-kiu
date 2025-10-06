@@ -3,13 +3,16 @@
 //! Converts between database models and business logic types.
 //!
 //! [dto]:https://en.wikipedia.org/wiki/Data_transfer_object
-pub use doctor::DoctorId;
-pub use patient::PatientId;
-pub use specialty::SpecialtyId;
 
+pub use specialty::SpecialtyId;
+pub use user::UserId;
+
+pub mod appointment;
 pub mod doctor;
 pub mod patient;
+pub mod social_security;
 pub mod specialty;
+pub mod user;
 /// Helper utils for Domain's DTOs.
 mod utils;
 

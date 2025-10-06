@@ -3,13 +3,13 @@ use crate::domain::Paged;
 use crate::domain::dto::doctor::*;
 use crate::domain::dto::specialty::Specialty;
 
-pub trait DoctorService {
+pub(crate) trait DoctorService {
     async fn get_doctors(
         &self,
         pagination: impl Into<Pagination>,
     ) -> AppResult<Paged<Doctor>>;
 
-    async fn get_doctor(&self, id: DoctorId) -> AppResult<Option<Doctor>>;
+    async fn get_doctor(&self, id: UserId) -> AppResult<Option<Doctor>>;
 
     async fn get_doctors_by_specialty(
         &self,
@@ -50,7 +50,7 @@ impl DoctorService for AppState {
         // Ok(Paged::new(result, pagination))
     }
 
-    async fn get_doctor(&self, id: DoctorId) -> AppResult<Option<Doctor>> {
+    async fn get_doctor(&self, id: UserId) -> AppResult<Option<Doctor>> {
         let doctor = self.db.get_doctor(id.0).await;
         // if let None = doctor {
         //     return Ok(None);

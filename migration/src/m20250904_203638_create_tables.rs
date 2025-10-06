@@ -229,16 +229,18 @@ impl Doctor {
         Table::drop().table(Doctor::Table).if_exists().to_owned()
     }
 
-    async fn populate_sample_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-
-        // Sample doctors data: (user_id, cedula, passport, name, password_hash, specialties)
+    async fn populate_sample_data(
+        manager: &SchemaManager<'_>,
+    ) -> Result<(), DbErr> {
+        // Sample doctors data: (user_id, cedula, passport, name, password_hash,
+        // specialties)
         let doctors = [
             (
                 "01234567-89ab-cdef-0123-456789abcdef",
                 "001-1234567-8",
                 None,
                 "Dr. María González",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O", // bcrypt of "password123"
+                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O", /* bcrypt of "password123" */
                 vec![1, 2], // Medicina General, Medicina Familiar
             ),
             (
@@ -585,6 +587,7 @@ pub enum Asegurado {
     UserId,
     /// Identificador expedido por la aseguradora
     NaturalId,
+    NombreAseguradora,
     Description,
 }
 
@@ -595,7 +598,8 @@ impl Asegurado {
             .if_not_exists()
             .col(uuid(Asegurado::Id).primary_key())
             .col(uuid_null(Asegurado::UserId))
-            .col(string_len(Asegurado::NaturalId, 50).unique_key())
+            .col(text(Asegurado::NaturalId))
+            .col(text(Asegurado::NombreAseguradora))
             .col(text_null(Asegurado::Description))
             .to_owned()
     }
@@ -603,7 +607,7 @@ impl Asegurado {
     pub fn table_user_fk() -> ForeignKeyCreateStatement {
         ForeignKey::create()
             .from(Asegurado::Table, Asegurado::UserId)
-            .to(User::Table, User::Id)
+            .to(Patient::Table, Patient::Id)
             .on_delete(ForeignKeyAction::SetNull)
             .on_update(ForeignKeyAction::Restrict)
             .take()
@@ -622,6 +626,7 @@ pub enum Cita {
     PacienteId,
     AseguradoId,
     Fecha,
+    TimestampEnd,
     Estado,
 }
 
@@ -633,8 +638,9 @@ impl Cita {
             .col(uuid(Cita::Id).primary_key())
             .col(uuid_null(Cita::DoctorId))
             .col(uuid_null(Cita::PacienteId))
-            .col(timestamp(Cita::Fecha))
             .col(uuid_null(Cita::AseguradoId))
+            .col(timestamp(Cita::Fecha))
+            .col(timestamp_null(Cita::TimestampEnd))
             .col(string_len(Cita::Estado, 16))
             .to_owned()
     }

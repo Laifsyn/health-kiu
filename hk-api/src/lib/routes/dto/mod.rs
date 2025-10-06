@@ -21,7 +21,7 @@ mod prelude {
     pub use super::ApiName;
     pub use crate::domain::dto::doctor::Doctor;
     pub use crate::domain::dto::specialty::Specialty;
-    pub use crate::domain::dto::{DoctorId, SpecialtyId};
+    pub use crate::domain::dto::{SpecialtyId, UserId};
     pub(crate) use crate::domain::{Paged, dto as domain_dto};
     pub use crate::routes::{ApiError, ErrorKind};
 }

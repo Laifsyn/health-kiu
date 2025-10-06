@@ -3,22 +3,12 @@ use db::user::Model as DbUser;
 use models as db;
 use secrecy::SecretString;
 
-use crate::Ulid;
 use crate::domain::Name;
-use crate::domain::dto::utils::id_wrapper;
-
-id_wrapper! {
-    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct DoctorId(pub Ulid)
-}
-
-impl From<DoctorId> for sea_orm::Value {
-    fn from(id: DoctorId) -> Self { sea_orm::Value::from(id.0) }
-}
+use crate::domain::dto::user::UserId;
 
 #[derive(Clone)]
 pub struct Doctor {
-    pub id: DoctorId,
+    pub id: UserId,
     pub cedula: String,
     pub passport: Option<String>,
     pub nombre: Name,
@@ -35,7 +25,7 @@ impl Doctor {
         let DbDoctor { id: _, name, password_hash } = doctor;
         let DbUser { id, cedula, passport } = user;
         Doctor {
-            id: DoctorId(id.into()),
+            id: UserId(id.into()),
             cedula,
             passport,
             nombre: Name::new(name),

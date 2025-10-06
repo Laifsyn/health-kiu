@@ -22,7 +22,7 @@ impl TryFrom<Id> for SpecialtyId {
     }
 }
 
-impl TryFrom<Id> for domain_dto::DoctorId {
+impl TryFrom<Id> for domain_dto::UserId {
     type Error = ApiError;
 
     fn try_from(value: Id) -> std::result::Result<Self, Self::Error> {
