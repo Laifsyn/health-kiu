@@ -1,7 +1,5 @@
-//! Interaction Contract with the database.
 //!
-//!
-//! It provides an abstraction over most the databases operations.
+//! It provides an abstraction over all database operations (if not most).
 mod doctors;
 mod specialties;
 

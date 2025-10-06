@@ -6,12 +6,10 @@
 pub use doctor::DoctorId;
 pub use patient::PatientId;
 pub use specialty::SpecialtyId;
-pub use user::UserId;
 
 pub mod doctor;
 pub mod patient;
 pub mod specialty;
-pub mod user;
 /// Helper utils for Domain's DTOs.
 mod utils;
 
