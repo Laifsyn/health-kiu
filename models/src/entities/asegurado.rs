@@ -8,8 +8,10 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub user_id: Option<Uuid>,
-    #[sea_orm(unique)]
+    #[sea_orm(column_type = "Text")]
     pub natural_id: String,
+    #[sea_orm(column_type = "Text")]
+    pub nombre_aseguradora: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
 }
@@ -19,13 +21,13 @@ pub enum Relation {
     #[sea_orm(has_many = "super::cita::Entity")]
     Cita,
     #[sea_orm(
-        belongs_to = "super::user::Entity",
+        belongs_to = "super::patient::Entity",
         from = "Column::UserId",
-        to = "super::user::Column::Id",
+        to = "super::patient::Column::Id",
         on_update = "Restrict",
         on_delete = "SetNull"
     )]
-    User,
+    Patient,
 }
 
 impl Related<super::cita::Entity> for Entity {
@@ -34,9 +36,9 @@ impl Related<super::cita::Entity> for Entity {
     }
 }
 
-impl Related<super::user::Entity> for Entity {
+impl Related<super::patient::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::User.def()
+        Relation::Patient.def()
     }
 }
 

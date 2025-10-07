@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::schema::*;
+use uuid::Uuid;
+use time::Date;
 
 use crate::log_with_context as lwc;
 #[derive(DeriveMigrationName)]
@@ -288,8 +290,9 @@ impl Doctor {
                 Some(p) => SimpleExpr::Value((*p).into()),
                 None => SimpleExpr::Value(Value::String(None)),
             };
+            let uuid = Uuid::parse_str(user_id).expect("Invalid UUID");
             user_insert.values_panic([
-                SimpleExpr::Value((*user_id).into()),
+                SimpleExpr::Value(uuid.into()),
                 SimpleExpr::Value((*cedula).into()),
                 passport_value,
             ]);
@@ -307,8 +310,9 @@ impl Doctor {
             .to_owned();
 
         for (user_id, _, _, name, password_hash, _) in doctors.iter() {
+            let uuid = Uuid::parse_str(user_id).expect("Invalid UUID");
             doctor_insert.values_panic([
-                SimpleExpr::Value((*user_id).into()),
+                SimpleExpr::Value(uuid.into()),
                 SimpleExpr::Value((*name).into()),
                 SimpleExpr::Value((*password_hash).into()),
             ]);
@@ -331,11 +335,13 @@ impl Doctor {
             .to_owned();
 
         for (user_id, _, _, _, _, specialties) in doctors.iter() {
+            let uuid = Uuid::parse_str(user_id).expect("Invalid UUID");
+            let cert_date = Date::from_calendar_date(2020, time::Month::January, 15).expect("Invalid date");
             for specialty_id in specialties.iter() {
                 specialty_insert.values_panic([
-                    SimpleExpr::Value((*user_id).into()),
+                    SimpleExpr::Value(uuid.into()),
                     SimpleExpr::Value((*specialty_id).into()),
-                    SimpleExpr::Value("2020-01-15".into()), // Sample certification date
+                    SimpleExpr::Value(cert_date.into()),
                     SimpleExpr::Value(true.into()),
                 ]);
             }

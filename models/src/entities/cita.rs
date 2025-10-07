@@ -9,8 +9,9 @@ pub struct Model {
     pub id: Uuid,
     pub doctor_id: Option<Uuid>,
     pub paciente_id: Option<Uuid>,
-    pub fecha: DateTime,
     pub asegurado_id: Option<Uuid>,
+    pub fecha: DateTime,
+    pub timestamp_end: Option<DateTime>,
     pub estado: String,
 }
 
