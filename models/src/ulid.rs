@@ -15,8 +15,6 @@ use std::ops::{Deref, DerefMut};
 use sea_orm::sea_query;
 use uuid::Uuid;
 
-use crate::doctor;
-
 /// A newtype wrapper around `ulid::Ulid` to be compatible with sea-orm's type
 /// model.
 #[derive(Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord)]

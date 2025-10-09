@@ -20,7 +20,15 @@ pub(crate) trait DoctorRepo {
         pagination: Pagination,
     ) -> Result<Vec<DoctorUser>>;
 
-    async fn get_doctor(&self, id: Ulid) -> Result<Option<DoctorUser>>;
+    async fn get_doctor(
+        &self,
+        id: impl Into<Ulid>,
+    ) -> Result<Option<DoctorUser>>;
+
+    async fn get_appointments(
+        &self,
+        id: impl Into<Ulid>,
+    ) -> Result<Vec<DbCita>>;
 }
 
 impl DoctorRepo for OrmDB {
@@ -87,12 +95,28 @@ impl DoctorRepo for OrmDB {
         Ok(doctors)
     }
 
-    async fn get_doctor(&self, id: Ulid) -> Result<Option<DoctorUser>> {
-        doctor::Entity::find_by_id(id)
+    async fn get_doctor(
+        &self,
+        id: impl Into<Ulid>,
+    ) -> Result<Option<DoctorUser>> {
+        doctor::Entity::find_by_id(id.into())
             .find_also_related(user::Entity)
             .one(self.connection())
             .await
             .map(|t| t.and_then(flatten_doctor_user))
+    }
+
+    async fn get_appointments(
+        &self,
+        id: impl Into<Ulid>,
+    ) -> Result<Vec<DbCita>> {
+        cita::Entity::find()
+            .find_also_related(doctor::Entity)
+            .filter(cita::Column::DoctorId.eq(id.into()))
+            .order_by(cita::Column::Fecha, sea_orm::Order::Asc)
+            .all(self.connection())
+            .await?;
+        todo!()
     }
 }
 
