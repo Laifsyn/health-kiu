@@ -1,7 +1,7 @@
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::schema::*;
-use uuid::Uuid;
 use time::Date;
+use uuid::Uuid;
 
 use crate::log_with_context as lwc;
 #[derive(DeriveMigrationName)]
@@ -242,7 +242,8 @@ impl Doctor {
                 "001-1234567-8",
                 None,
                 "Dr. María González",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O", /* bcrypt of "password123" */
+                "$argon2id$v=19$m=19456,t=2,p=1$KcQXe/xfSmh2PofgP9/\
+                 6DA$ypct83GJKYvIycX1A+XZEdvk3ig55007poqqwl0qeB0", // 12345678
                 vec![1, 2], // Medicina General, Medicina Familiar
             ),
             (
@@ -250,7 +251,7 @@ impl Doctor {
                 "001-2345678-9",
                 Some("P12345678"),
                 "Dr. Carlos Rodríguez",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$mfJGD5eIEn5q7dAKTD3DTg$GJlv3KP05+G8EftAKw+ITdBO3reFJD7Vja3WFA4Ssyk",
                 vec![11, 3], // Cardiología, Medicina Interna
             ),
             (
@@ -258,7 +259,7 @@ impl Doctor {
                 "001-3456789-0",
                 None,
                 "Dr. Ana Martínez",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$mwXJO7rw70+vorZqnTYnxg$jiO3dEgWdKj27NBCaSlFYrdCnNHXF07UPhrxKR2gHCs",
                 vec![4, 11], // Pediatría, Cardiología
             ),
             (
@@ -266,7 +267,8 @@ impl Doctor {
                 "001-4567890-1",
                 None,
                 "Dr. Luis Fernández",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$jANKBYUJx1ujGcArJqaWaA$Mz9v/\
+                 DSqA1gVyO0Rwr8X3ntLOaasXX6LCcBJZMwCdEc",
                 vec![9, 12, 13], // Cirugía General, Neurología, Neurocirugía
             ),
             (
@@ -274,7 +276,7 @@ impl Doctor {
                 "001-5678901-2",
                 Some("P87654321"),
                 "Dr. Carmen López",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$5ZYJcaPMG2nK0MvBFvElXQ$OsrmX4h2NEuo+3kQs9j1jhOPCNMkjmXRarXjZCOEtKQ",
                 vec![6, 20], // Ginecología y Obstetricia, Dermatología
             ),
         ];
@@ -336,7 +338,9 @@ impl Doctor {
 
         for (user_id, _, _, _, _, specialties) in doctors.iter() {
             let uuid = Uuid::parse_str(user_id).expect("Invalid UUID");
-            let cert_date = Date::from_calendar_date(2020, time::Month::January, 15).expect("Invalid date");
+            let cert_date =
+                Date::from_calendar_date(2020, time::Month::January, 15)
+                    .expect("Invalid date");
             for specialty_id in specialties.iter() {
                 specialty_insert.values_panic([
                     SimpleExpr::Value(uuid.into()),

@@ -1,6 +1,6 @@
 /// Pagination parameters for database queries.
 /// Used to limit the number of records fetched and to avoid huge data fetching.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[readonly::make]
 pub struct Pagination {

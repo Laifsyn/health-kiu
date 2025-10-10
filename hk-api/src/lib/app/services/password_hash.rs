@@ -1,4 +1,4 @@
-use color_eyre::eyre::ContextCompat;
+use color_eyre::eyre::{self, ContextCompat, eyre};
 
 use super::prelude::*;
 use crate::adapters::crypto::PasswordHasher;
@@ -12,13 +12,15 @@ impl PasswordHashService for AppState {
     fn hash_password(&self, password: &[u8]) -> AppResult<String> {
         self.hasher
             .hash_password(password)
-            .wrap_err_with(|| {
-                format!(
-                    "Failed to hash password: {}",
-                    password_source_display(password)
+            .map_err(|e| {
+                // FIXME: We shouldn't log the password source
+                eyre!(
+                    "Failed to hash password (source: {}): {}",
+                    password_source_display(password),
+                    e
                 )
             })
-            .map_err(AppError::new)
+            .map_err(AppError::from)
     }
 
     fn verify_password(&self, hash: &str, password: &[u8]) -> bool {
@@ -32,7 +34,7 @@ fn password_source_display(bytes: &[u8]) -> String {
     const PRINT_LIMIT: usize = 32;
     let len = bytes.len();
     let bytes = &bytes[..len.min(PRINT_LIMIT)];
-    let err = match str::from_utf8(&bytes) {
+    let err = match str::from_utf8(bytes) {
         Ok(s) => s.to_string(),
         Err(_) => format!("{:x?}", bytes),
     };
