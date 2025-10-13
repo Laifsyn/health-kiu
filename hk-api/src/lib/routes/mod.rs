@@ -2,6 +2,7 @@
 mod doctor;
 mod dto;
 mod error;
+mod login;
 mod specialty;
 
 pub use error::{ApiError, ErrorKind};

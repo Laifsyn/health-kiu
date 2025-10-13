@@ -36,6 +36,11 @@ impl ApiError {
         move |e| Self::new_with_context(e, ctx)
     }
 
+    /// Attaches context to the error, returning a new `ApiError`.
+    pub fn context(self, ctx: impl Into<Cow<'static, str>>) -> Self {
+        Self { context: Some(ctx.into()), ..self }
+    }
+
     pub fn bad_request(ctx: impl Display) -> Self {
         Self::new_with_context(
             ErrorKind::BadRequest,
@@ -49,6 +54,8 @@ impl ApiError {
             Cow::Owned(format!("{item} not found")),
         )
     }
+
+    pub fn unauthorized() -> Self { Self::new(ErrorKind::Unauthorized) }
 }
 
 impl<T: Into<ErrorKind>> From<T> for ApiError {

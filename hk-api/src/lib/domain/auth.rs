@@ -1,3 +1,7 @@
+use std::str::FromStr;
+
+use strum_macros::{EnumIs, EnumString};
+
 use crate::domain::dto::UserId;
 
 pub struct Auth {
@@ -6,6 +10,8 @@ pub struct Auth {
     role: UserRole,
 }
 
+#[derive(Clone, PartialEq, Eq, EnumString, EnumIs)]
+#[strum(serialize_all = "lowercase")]
 pub enum UserRole {
     Patient,
     Doctor,
@@ -26,8 +32,4 @@ impl UserRole {
             _ => None,
         }
     }
-
-    pub fn is_patient(&self) -> bool { matches!(self, UserRole::Patient) }
-
-    pub fn is_doctor(&self) -> bool { matches!(self, UserRole::Doctor) }
 }

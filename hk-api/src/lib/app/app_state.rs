@@ -63,6 +63,6 @@ async fn test_db() -> OrmDB {
 impl AppState {
     /// Returns a reference to the inner database connection.
     pub fn inner_connection(&self) -> &DatabaseConnection {
-        &self.db.connection()
+        self.db.connection()
     }
 }

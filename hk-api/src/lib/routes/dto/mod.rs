@@ -7,6 +7,7 @@ mod doctor;
 mod id;
 mod name;
 mod pagination;
+mod session;
 mod specialty;
 
 pub use doctor::*;
