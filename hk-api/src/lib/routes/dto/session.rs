@@ -13,7 +13,7 @@ use crate::routes::ApiError;
 pub struct Session<T> {
     user_id: Ulid,
     user_name: String,
-    role: PhantomData<T>,
+    _role: PhantomData<T>,
 }
 
 enum AuthError {
@@ -38,10 +38,13 @@ impl From<AuthError> for ApiError {
     }
 }
 
+pub type DoctorSession = Session<Doctor>;
+pub type PatientSession = Session<Patient>;
+
 pub struct Doctor;
 pub struct Patient;
 
-impl<Role> FromRequestParts<AppState> for Session<Role> {
+impl<R> FromRequestParts<AppState> for Session<R> {
     type Rejection = ApiError;
 
     async fn from_request_parts(
@@ -53,7 +56,5 @@ impl<Role> FromRequestParts<AppState> for Session<Role> {
             .await
             .expect("extracting cookies should be infallible");
         jar.get("token").ok_or(AuthError::MissingToken)?;
-
-        todo!()
     }
 }

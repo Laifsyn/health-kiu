@@ -9,6 +9,9 @@ mod name;
 mod pagination;
 mod session;
 mod specialty;
+/// JWT's token
+mod token;
+mod user;
 
 pub use doctor::*;
 pub use id::*;

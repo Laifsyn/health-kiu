@@ -31,6 +31,10 @@ impl Ulid {
 
     /// Generates a new ULID.
     pub fn new() -> Self { Self::default() }
+
+    pub fn from_str(s: &str) -> Result<Self, ulid::DecodeError> {
+        ulid::Ulid::from_string(s).map(Ulid)
+    }
 }
 
 impl Default for Ulid {
