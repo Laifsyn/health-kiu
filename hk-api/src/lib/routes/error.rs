@@ -55,6 +55,10 @@ impl ApiError {
         )
     }
 
+    pub fn internal(ctx: impl Display) -> Self {
+        Self::new_with_context(ErrorKind::Internal, Cow::Owned(ctx.to_string()))
+    }
+
     pub fn unauthorized() -> Self { Self::new(ErrorKind::Unauthorized) }
 }
 

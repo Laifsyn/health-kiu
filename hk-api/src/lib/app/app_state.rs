@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use sea_orm::prelude::*;
 
-use crate::adapters::crypto::ArgonHasher;
+use crate::adapters::crypto::{AppKeys, ArgonHasher};
 use crate::repo::OrmDB;
 /// The main application state.
 /// Holds the database connection and other shared resources.
@@ -13,6 +13,8 @@ pub struct AppState {
     /// Password Hasher
     pub(super) hasher: Arc<ArgonHasher>,
     pub(super) db: OrmDB,
+    pub(super) public_key: Arc<[u8]>,
+    pub(super) private_key: Arc<[u8]>,
 }
 
 impl AppState {
@@ -33,10 +35,23 @@ impl AppState {
         let db = DB.get_or_init(test_db).await;
         let db = db.clone();
         let this = INIT.get_or_init(|| {
-            Arc::new(Self { db, hasher: Self::default_hasher() })
+            let AppKeys { private, public } = Self::keys();
+            Arc::new(Self {
+                db,
+                hasher: Self::default_hasher(),
+                public_key: public,
+                private_key: private,
+            })
         });
         this.clone()
     }
+
+    pub fn public_key(&self) -> &[u8] { self.public_key.as_ref() }
+
+    pub fn private_key(&self) -> &[u8] { self.private_key.as_ref() }
+
+    /// Reads from the [`fs`](std::fs), and returns the stored keys.
+    fn keys() -> AppKeys { AppKeys::new() }
 
     fn default_hasher() -> Arc<ArgonHasher> { Arc::new(ArgonHasher::default()) }
 }

@@ -2,6 +2,7 @@
 //! It provides an abstraction over all database operations (if not most).
 mod appointment;
 mod doctors;
+mod login;
 mod specialties;
 
 pub(crate) use doctors::DoctorRepo;

@@ -7,7 +7,7 @@
 //! Basically holds what the handlers can do to the system.
 
 pub mod doctor;
-pub mod password_hash;
+pub mod login;
 pub mod specialties;
 
 /// Convenience re-exports for [`crate::app::services`].

@@ -2,30 +2,43 @@ use color_eyre::eyre::{self, ContextCompat, eyre};
 
 use super::prelude::*;
 use crate::adapters::crypto::PasswordHasher;
+use crate::domain::UserRole;
 
-pub trait PasswordHashService {
-    fn hash_password(&self, password: &[u8]) -> AppResult<String>;
+pub trait LoginService {
+    async fn login(
+        &self,
+        username: &str,
+        password: &[u8],
+    ) -> AppResult<(UserId, UserRole)>;
     fn verify_password(&self, hash: &str, password: &[u8]) -> bool;
 }
 
-impl PasswordHashService for AppState {
-    fn hash_password(&self, password: &[u8]) -> AppResult<String> {
-        self.hasher
-            .hash_password(password)
-            .map_err(|e| {
-                // FIXME: We shouldn't log the password source
-                eyre!(
-                    "Failed to hash password (source: {}): {}",
-                    password_source_display(password),
-                    e
-                )
-            })
-            .map_err(AppError::from)
-    }
-
+impl LoginService for AppState {
     fn verify_password(&self, hash: &str, password: &[u8]) -> bool {
         self.hasher.verify_password(hash, password)
     }
+
+    async fn login(
+        &self,
+        username: &str,
+        password: &[u8],
+    ) -> AppResult<(UserId, UserRole)> {
+        todo!()
+    }
+}
+
+fn hash_password(&self, password: &[u8]) -> AppResult<String> {
+    self.hasher
+        .hash_password(password)
+        .map_err(|e| {
+            // FIXME: We shouldn't log the password source
+            eyre!(
+                "Failed to hash password (source: {}): {}",
+                password_source_display(password),
+                e
+            )
+        })
+        .map_err(AppError::from)
 }
 
 /// Parse the given bytes as a UTF-8 string, or as a hex dump if not valid

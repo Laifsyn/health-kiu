@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use crate::tls::{init_certificates, pem_file_path};
+
 pub trait PasswordHasher {
     type Error;
     fn hash_password(
@@ -34,5 +38,27 @@ impl PasswordHasher for ArgonHasher {
             return false;
         };
         self.hasher.verify_password(password.as_ref(), &parsed_hash).is_ok()
+    }
+}
+
+/// Holds the private and public keys used for signing and verifying JWTs.
+pub struct AppKeys {
+    pub private: Arc<[u8]>,
+    pub public: Arc<[u8]>,
+}
+
+impl AppKeys {
+    pub const USER_KEYS: &'static str = "./.data/jwt_users";
+
+    /// Reads from the File System, and returns the stored keys wrappy with
+    /// [`Arc`].
+    pub fn new() -> Self {
+        let (cert, key) = pem_file_path(Self::USER_KEYS)
+            .expect("Failed to initialize jwt tokens certificates");
+        let private =
+            std::fs::read(&key).expect("Failed to read private key file");
+        let public =
+            std::fs::read(&cert).expect("Failed to read public key file");
+        Self { private: Arc::from(private), public: Arc::from(public) }
     }
 }
