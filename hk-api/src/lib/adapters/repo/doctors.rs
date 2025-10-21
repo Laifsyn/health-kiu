@@ -29,6 +29,11 @@ pub(crate) trait DoctorRepo {
         &self,
         id: impl Into<Ulid>,
     ) -> Result<Vec<DbCita>>;
+
+    async fn get_doctor_by_cedula(
+        &self,
+        cedula: &str,
+    ) -> Result<Option<DoctorUser>>;
 }
 
 impl DoctorRepo for OrmDB {
@@ -117,6 +122,18 @@ impl DoctorRepo for OrmDB {
             .all(self.connection())
             .await?;
         todo!()
+    }
+
+    async fn get_doctor_by_cedula(
+        &self,
+        cedula: &str,
+    ) -> Result<Option<DoctorUser>> {
+        doctor::Entity::find()
+            .find_also_related(user::Entity)
+            .filter(user::Column::Cedula.eq(cedula))
+            .one(self.connection())
+            .await
+            .map(|t| t.and_then(flatten_doctor_user))
     }
 }
 

@@ -5,6 +5,7 @@ pub struct AppError {
     source: ErrorKind,
     context: Option<CowStr>,
 }
+
 type CowStr = Cow<'static, str>;
 impl AppError {
     /// Builds a [`ServiceError`] with no context.
@@ -24,6 +25,8 @@ impl AppError {
         self.context = Some(ctx.into());
         self
     }
+
+    pub fn invalid_password() -> Self { Self::new(ErrorKind::InvalidPassword) }
 
     /// Returns a closure that creates a [`ServiceError`] with the given
     /// context.
@@ -68,6 +71,8 @@ pub enum ErrorKind {
     DatabaseError(#[from] sea_orm::DbErr),
     #[error("Validation Error")]
     ValidationError,
+    #[error("Invalid Password")]
+    InvalidPassword,
     #[error("Unknown Error")]
     Unknown(#[from] color_eyre::Report),
 }

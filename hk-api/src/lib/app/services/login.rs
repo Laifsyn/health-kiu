@@ -2,14 +2,24 @@ use color_eyre::eyre::{self, ContextCompat, eyre};
 
 use super::prelude::*;
 use crate::adapters::crypto::PasswordHasher;
-use crate::domain::UserRole;
+use crate::domain::dto::doctor::Doctor;
+use crate::domain::dto::patient::Patient;
+use crate::domain::dto::user::UserId;
+use crate::domain::{self, UserRole};
 
 pub trait LoginService {
-    async fn login(
+    async fn login_doctor(
         &self,
         username: &str,
         password: &[u8],
-    ) -> AppResult<(UserId, UserRole)>;
+    ) -> Result<Option<Doctor>>;
+
+    async fn login_patient(
+        &self,
+        username: &str,
+        password: &[u8],
+    ) -> Result<Option<Patient>>;
+
     fn verify_password(&self, hash: &str, password: &[u8]) -> bool;
 }
 
@@ -18,17 +28,45 @@ impl LoginService for AppState {
         self.hasher.verify_password(hash, password)
     }
 
-    async fn login(
+    async fn login_doctor(
         &self,
         username: &str,
         password: &[u8],
-    ) -> AppResult<(UserId, UserRole)> {
-        todo!()
+    ) -> Result<Option<Doctor>> {
+        let fetched_users = self.db.get_doctor_by_cedula(username).await?;
+        let Some((fetched_users)) = fetched_users else {
+            return Ok(None);
+        };
+        let (doctor, user) = &fetched_users;
+
+        let verified = self.verify_password(&doctor.password_hash, password);
+        if !verified {
+            return Err(AppError::invalid_password());
+        }
+        Ok(Some(fetched_users.into()))
+    }
+
+    async fn login_patient(
+        &self,
+        username: &str,
+        password: &[u8],
+    ) -> Result<Option<Patient>> {
+        let fetched_users = self.db.get_patient_by_cedula(username).await?;
+        let Some((fetched_users)) = fetched_users else {
+            return Ok(None);
+        };
+        let (patient, user) = &fetched_users;
+
+        let verified = self.verify_password(&patient.password_hash, password);
+        if !verified {
+            return Err(AppError::invalid_password());
+        }
+        Ok(Some(fetched_users.into()))
     }
 }
 
-fn hash_password(&self, password: &[u8]) -> AppResult<String> {
-    self.hasher
+fn hash_password(this: &AppState, password: &[u8]) -> Result<String> {
+    this.hasher
         .hash_password(password)
         .map_err(|e| {
             // FIXME: We shouldn't log the password source

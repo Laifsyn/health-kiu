@@ -5,14 +5,14 @@ pub trait SpecialtyService {
     async fn get_specialties(
         &self,
         pagination: impl Into<Pagination>,
-    ) -> AppResult<Paged<Specialty>>;
+    ) -> Result<Paged<Specialty>>;
 }
 
 impl SpecialtyService for AppState {
     async fn get_specialties(
         &self,
         pagination: impl Into<Pagination>,
-    ) -> AppResult<Paged<Specialty>> {
+    ) -> Result<Paged<Specialty>> {
         let pagination = pagination.into();
         let specialties = self
             .db

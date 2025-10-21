@@ -33,3 +33,9 @@ impl Doctor {
         }
     }
 }
+impl From<(DbDoctor, DbUser)> for Doctor {
+    /// Delegates to [`Doctor::from_models`].
+    fn from((doctor, user): (DbDoctor, DbUser)) -> Self {
+        Self::from_models(doctor, user)
+    }
+}

@@ -1,4 +1,4 @@
-pub use super::prelude::*;
+use super::prelude::*;
 use crate::domain::dto::utils::id_wrapper;
 id_wrapper!(
     /// A shared ID type for both [`Doctor`][doc] and [`Patient`][patient].

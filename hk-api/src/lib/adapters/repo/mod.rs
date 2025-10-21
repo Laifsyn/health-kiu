@@ -2,10 +2,11 @@
 //! It provides an abstraction over all database operations (if not most).
 mod appointment;
 mod doctors;
-mod login;
+mod patient;
 mod specialties;
 
 pub(crate) use doctors::DoctorRepo;
+pub(crate) use patient::PatientRepo;
 pub(crate) use specialties::SpecialtyRepo;
 
 /// Type alias for repository results.
@@ -27,8 +28,7 @@ pub mod prelude {
     pub use sea_orm::QueryOrder;
 
     pub use super::OrmDB;
-    pub(crate) use super::doctors::DoctorRepo;
-    pub(crate) use super::specialties::SpecialtyRepo;
+    pub(crate) use super::{DoctorRepo, PatientRepo, SpecialtyRepo};
     pub use crate::Ulid;
     pub use crate::repo::Result;
 }
