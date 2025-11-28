@@ -11,7 +11,7 @@ pub trait DoctorRepo {
         &self,
         specialty_id: SpecialtyId,
         pagination: impl Into<Pagination>,
-    ) -> Result<Option<(DbEspecialidad, Vec<DbDoctor>)>, DbErr>;
+    ) -> Result<Option<(DbEspecialidad, Vec<(DbDoctor, DbUser)>)>, DbErr>;
 }
 
 impl DoctorRepo for OrmDB {
@@ -19,7 +19,7 @@ impl DoctorRepo for OrmDB {
         &self,
         specialty_id: SpecialtyId,
         pagination: impl Into<Pagination>,
-    ) -> Result<Option<(DbEspecialidad, Vec<DbDoctor>)>, DbErr> {
+    ) -> Result<Option<(DbEspecialidad, Vec<(DbDoctor, DbUser)>)>, DbErr> {
         let pagination = pagination.into();
         let results = self
             .select_paginated::<Especialidad>(pagination)
@@ -38,6 +38,16 @@ impl DoctorRepo for OrmDB {
         let doctors: Vec<DbDoctor> =
             results.into_iter().filter_map(|(_, doctor)| doctor).collect();
 
-        Ok(Some((specialty, doctors)))
+        // Load user data for each doctor
+        let mut doctors_with_users = Vec::new();
+        for doctor in doctors {
+            let user = user::Entity::find_by_id(doctor.id)
+                .one(self.connection())
+                .await?
+                .ok_or_else(|| DbErr::RecordNotFound(format!("User not found for doctor {}", doctor.id)))?;
+            doctors_with_users.push((doctor, user));
+        }
+
+        Ok(Some((specialty, doctors_with_users)))
     }
 }
