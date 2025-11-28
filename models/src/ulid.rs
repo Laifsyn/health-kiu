@@ -11,6 +11,7 @@
 use core::fmt;
 use std::convert::From;
 use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 
 use sea_orm::sea_query;
 use uuid::Uuid;
@@ -32,9 +33,21 @@ impl Ulid {
     /// Generates a new ULID.
     pub fn new() -> Self { Self::default() }
 
-    pub fn from_str(s: &str) -> Result<Self, ulid::DecodeError> {
+    fn from_str(s: &str) -> Result<Self, ulid::DecodeError> {
         ulid::Ulid::from_string(s).map(Ulid)
     }
+}
+
+impl FromStr for Ulid {
+    type Err = ulid::DecodeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> { Ulid::from_str(s) }
+}
+
+impl TryFrom<&str> for Ulid {
+    type Error = ulid::DecodeError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> { Ulid::from_str(s) }
 }
 
 impl Default for Ulid {

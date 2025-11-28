@@ -7,6 +7,7 @@ mod doctor;
 mod id;
 mod name;
 mod pagination;
+mod patient;
 mod session;
 mod specialty;
 /// JWT's token
@@ -17,6 +18,7 @@ pub use doctor::*;
 pub use id::*;
 pub use name::*;
 pub use pagination::*;
+pub use patient::*;
 pub use specialty::*;
 
 /// Convenience re-exports for the dto's layer in [`crate::routes::dto`].

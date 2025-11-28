@@ -9,3 +9,5 @@ pub(crate) mod domain;
 mod router_app;
 mod routes;
 mod utils;
+
+pub use router_app::create_app;

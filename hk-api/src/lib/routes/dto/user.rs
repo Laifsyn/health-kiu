@@ -31,7 +31,7 @@ impl<'de> Deserialize<'de> for UserKinds {
             ))?;
 
         // Defer id parsing to after variant matching
-        let id = move || Ulid::from_str(id).map_err(serde::de::Error::custom);
+        let id = move || Ulid::try_from(id).map_err(serde::de::Error::custom);
 
         match (variant) {
             ("patient") => Ok(UserKinds::Patient(id()?)),

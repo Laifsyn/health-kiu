@@ -12,6 +12,8 @@ pub mod error;
 pub mod services;
 
 /// Type alias for `application layer's` results.
+///
+/// We could also call it the Service's Result.
 pub type AppResult<T, E = AppError> = std::result::Result<T, E>;
 pub(crate) use error::AppError;
 

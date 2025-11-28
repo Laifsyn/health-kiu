@@ -6,6 +6,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::get;
 use color_eyre::eyre::Context;
+use hk_api::create_app;
 use tracing::info;
 
 mod migrator_main;
@@ -26,9 +27,9 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .await
         .context("Failed to get rustls config")?;
 
-    let app = Router::new()
-        .route("/hello/{name}", get(greet))
-        .route("/health_check", get(health_check));
+    let app_state = init_app_state();
+
+    let app = create_app(app_state);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8081));
     info!("listening on https://{}/", addr);
@@ -40,6 +41,8 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     Ok(())
 }
+
+fn init_app_state() -> hk_api::AppState { hk_api::AppState::default() }
 
 async fn greet(Path(name): Path<String>) -> impl IntoResponse {
     format!("Hello {}!", name)

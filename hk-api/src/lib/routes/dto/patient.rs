@@ -1,0 +1,25 @@
+use domain_dto::patient::Patient;
+use sea_orm::prelude::Uuid;
+use serde::Serialize;
+
+use super::prelude::*;
+#[derive(Serialize)]
+/// A Patient object returned by the API.
+pub struct ApiPatient {
+    /// The unique identifier of the patient.
+    pub id: Uuid,
+    pub cedula: String,
+    pub passport: Option<String>,
+    pub name: ApiName,
+}
+
+impl From<Patient> for ApiPatient {
+    fn from(patient: Patient) -> Self {
+        let Patient { id, cedula, passport, nombre, password_hash: _ } =
+            patient;
+        let id = id.0.as_uuid();
+        let name = ApiName::from(nombre);
+
+        Self { id, cedula, passport, name }
+    }
+}

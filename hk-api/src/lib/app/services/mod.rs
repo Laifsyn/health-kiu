@@ -15,6 +15,7 @@ mod prelude {
     #![allow(unused_imports)]
     pub use crate::AppState;
     pub(crate) use crate::app::AppError;
+    //TODO: Maybe we shouldn't rename, or name it as "ServiceResult"?
     pub use crate::app::AppResult as Result;
     pub use crate::domain::dto::{SpecialtyId, UserId};
     pub use crate::domain::{Name, Pagination};

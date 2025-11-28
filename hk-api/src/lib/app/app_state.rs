@@ -18,6 +18,8 @@ pub struct AppState {
 }
 
 impl AppState {
+    /// Default environment variable for the database URL.
+    pub const DB_URL_ENV_VAR: &'static str = "API_DB_URL";
     #[cfg(test)]
     const TEST_DB_ENV_VAR: &'static str = "API_TEST_DB_URL";
 
@@ -44,6 +46,31 @@ impl AppState {
             })
         });
         this.clone()
+    }
+
+    pub fn new(db_url: Option<&str>) -> color_eyre::eyre::Result<Self> {
+        use sea_orm::Database;
+
+        let database_url = match db_url {
+            Some(url) => url.to_string(),
+            None => {
+                std::env::var(Self::DB_URL_ENV_VAR).expect(
+                    "DATABASE_URL must be set in order to run the application",
+                )
+            }
+        };
+
+        todo!();
+        let db_conn = Database::connect(&database_url)?;
+        let db = OrmDB::from_inner(db_conn);
+        let AppKeys { private, public } = Self::keys();
+
+        Ok(Self {
+            db,
+            hasher: Self::default_hasher(),
+            public_key: public,
+            private_key: private,
+        })
     }
 
     pub fn public_key(&self) -> &[u8] { self.public_key.as_ref() }
