@@ -68,7 +68,10 @@
               </div>
             </div>
           </div>
-          <button class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          <button
+            @click="openCalendar(doctor.id)"
+            class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
             Agendar Cita
           </button>
         </div>
@@ -89,6 +92,25 @@
         <span v-if="data.has_more" class="text-blue-600"> - Hay más disponibles</span>
       </div>
     </div>
+
+    <!-- Calendar Modal -->
+    <div v-if="showCalendar" class="modal-overlay" @click.self="closeCalendar">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="text-xl font-bold text-gray-800">Seleccionar Fecha de Cita</h2>
+          <button @click="closeCalendar" class="close-button">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <AppointmentCalendar
+          v-if="selectedDoctorId"
+          :doctor-id="selectedDoctorId"
+          @date-selected="handleDateSelected"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -102,4 +124,74 @@ const { data, pending, error, refresh } = await useAsyncData(
   `doctors-${specialtyId.value}`,
   () => api.fetchDoctorsBySpecialty(specialtyId.value, 0, 20)
 )
+
+// Calendar modal state
+const showCalendar = ref(false)
+const selectedDoctorId = ref<string | null>(null)
+
+function openCalendar(doctorId: string) {
+  selectedDoctorId.value = doctorId
+  showCalendar.value = true
+}
+
+function closeCalendar() {
+  showCalendar.value = false
+  selectedDoctorId.value = null
+}
+
+function handleDateSelected(date: string) {
+  // TODO: Create appointment with the selected date
+  console.log('Date selected:', date)
+  alert(`Cita agendada para: ${date}`)
+  closeCalendar()
+}
 </script>
+
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.close-button {
+  padding: 8px;
+  border-radius: 8px;
+  background: #F3F4F6;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6B7280;
+}
+
+.close-button:hover {
+  background: #E5E7EB;
+  color: #1F2937;
+}
+</style>

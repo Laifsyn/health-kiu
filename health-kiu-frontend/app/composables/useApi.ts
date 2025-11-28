@@ -36,6 +36,20 @@ export const useApi = () => {
     items: Doctor[]
   }
 
+  interface DateAvailability {
+    date: string
+    status: 'available' | 'full' | 'weekend'
+    appointments_count: number
+    max_appointments: number
+  }
+
+  interface AvailabilityResponse {
+    doctor_id: string
+    dates: DateAvailability[]
+    start_date: string
+    end_date: string
+  }
+
   const fetchSpecialties = async (offset: number = 0, count: number = 20) => {
     try {
       const response = await $fetch<PagedResponse<Specialty>>(
@@ -66,8 +80,27 @@ export const useApi = () => {
     }
   }
 
+  const fetchDoctorAvailability = async (doctorId: string, startDate?: string, days: number = 30) => {
+    try {
+      const params: any = { days }
+      if (startDate) {
+        params.start_date = startDate
+      }
+
+      const response = await $fetch<AvailabilityResponse>(
+        `${apiBase}/api/doctors/${doctorId}/available-dates`,
+        { params }
+      )
+      return response
+    } catch (error) {
+      console.error('Error fetching doctor availability:', error)
+      throw error
+    }
+  }
+
   return {
     fetchSpecialties,
-    fetchDoctorsBySpecialty
+    fetchDoctorsBySpecialty,
+    fetchDoctorAvailability
   }
 }
