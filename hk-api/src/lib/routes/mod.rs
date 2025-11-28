@@ -1,8 +1,8 @@
 //! API handlers. System's Presentation layer.
-mod doctor;
+pub mod doctor;
 mod dto;
 mod error;
-mod specialty;
+pub mod specialty;
 
 pub use error::{ApiError, ErrorKind};
 

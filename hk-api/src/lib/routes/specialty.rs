@@ -4,10 +4,9 @@ use dto::ApiSpecialty;
 use super::prelude::*;
 
 pub async fn get_specialties(
-    Query(pag_params): MaybePaginated,
+    Query(pagination): Query<PaginatedReq>,
     State(app): StateApp,
 ) -> ResultPaged<ApiSpecialty> {
-    let pagination = pag_params.unwrap_or_default();
     let e = app
         .get_specialties(pagination.clone())
         .await

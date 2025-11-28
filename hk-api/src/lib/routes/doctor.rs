@@ -16,12 +16,11 @@ pub struct DoctorsInSpecialty {
 /// Requests doctors that have a given specialty.
 pub async fn doctors_by_specialty(
     Path(specialty_id): Path<i16>,
-    Query(pagination): MaybePaginated,
+    Query(pagination): Query<PaginatedReq>,
     State(app): StateApp,
 ) -> ApiResult<DoctorsInSpecialty> {
     let specialty_id = domain_dto::SpecialtyId::try_from_inner(specialty_id)
         .map_err(ApiError::bad_request)?;
-    let pagination = pagination.unwrap_or_default();
 
     let (specialty, doctors) = app
         .get_doctors_by_specialty(specialty_id.clone(), pagination)
