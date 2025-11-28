@@ -2,23 +2,38 @@ export const useApi = () => {
   const config = useRuntimeConfig()
   const apiBase = config.public.apiBase
 
+  // API response types matching the Rust backend
   interface Specialty {
     id: number
     name: string
-    description?: string
+    img_path: string | null
+  }
+
+  interface DoctorName {
+    first: string
+    last: string
   }
 
   interface Doctor {
     id: string
-    name: string
-    specialty_id: number
+    cedula: string
+    passport: string | null
+    name: DoctorName
   }
 
   interface PagedResponse<T> {
-    data: T[]
-    total: number
-    page: number
     page_size: number
+    next_offset: number | null
+    has_more: boolean
+    items: T[]
+  }
+
+  interface DoctorsBySpecialtyResponse {
+    specialty: Specialty
+    page_size: number
+    next_offset: number | null
+    has_more: boolean
+    items: Doctor[]
   }
 
   const fetchSpecialties = async (offset: number = 0, count: number = 20) => {
@@ -26,10 +41,7 @@ export const useApi = () => {
       const response = await $fetch<PagedResponse<Specialty>>(
         `${apiBase}/api/specialties`,
         {
-          params: { offset, count },
-          // Disable SSL verification for development with self-signed certs
-          // @ts-ignore
-          https: { rejectUnauthorized: false }
+          params: { offset, count }
         }
       )
       return response
@@ -41,12 +53,10 @@ export const useApi = () => {
 
   const fetchDoctorsBySpecialty = async (specialtyId: number, offset: number = 0, count: number = 20) => {
     try {
-      const response = await $fetch<{ specialty: Specialty, data: Doctor[], total: number }>(
+      const response = await $fetch<DoctorsBySpecialtyResponse>(
         `${apiBase}/api/specialties/${specialtyId}/doctors`,
         {
-          params: { offset, count },
-          // @ts-ignore
-          https: { rejectUnauthorized: false }
+          params: { offset, count }
         }
       )
       return response
