@@ -1,6 +1,11 @@
 <template>
   <div class="main-services-grid">
-    <div v-for="service in services" :key="service.id" :class="['service-card', service.colorClass]">
+    <div
+      v-for="service in services"
+      :key="service.id"
+      :class="['service-card', service.colorClass]"
+      @click="service.route && navigateTo(service.route)"
+    >
       <div class="service-icon" v-html="service.icon"></div>
       <div class="service-text">
         <div class="service-title">{{ service.title }}</div>
@@ -17,6 +22,7 @@ const services = [
     title: 'Cita Ambulatoria',
     subtitle: 'Reserva de consultas',
     colorClass: 'bg-blue-50',
+    route: '/appointments',
     icon: `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M24 8C18 8 13 13 13 19C13 25 18 30 24 30C30 30 35 25 35 19C35 13 30 8 24 8Z" stroke="#2563EB" stroke-width="2.5" fill="none"/>
       <path d="M30 20C30 20 28 24 24 24C20 24 18 20 18 20" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
@@ -29,6 +35,7 @@ const services = [
     title: 'Especialidades',
     subtitle: 'Consultas especializadas',
     colorClass: 'bg-pink-50',
+    route: '/appointments',
     icon: `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="24" cy="16" r="6" stroke="#EC4899" stroke-width="2.5" fill="none"/>
       <path d="M18 38C18 31 20 26 24 26C28 26 30 31 30 38" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round"/>
@@ -42,6 +49,7 @@ const services = [
     title: 'Registro Hoy',
     subtitle: 'Atención del mismo día',
     colorClass: 'bg-orange-50',
+    route: '/appointments',
     icon: `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="12" y="10" width="24" height="28" rx="2" stroke="#F97316" stroke-width="2.5" fill="none"/>
       <path d="M17 6V14M31 6V14" stroke="#F97316" stroke-width="2.5" stroke-linecap="round"/>
@@ -54,6 +62,7 @@ const services = [
     title: 'Multidisciplinario',
     subtitle: 'Diagnóstico integral',
     colorClass: 'bg-green-50',
+    route: '/services',
     icon: `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="24" cy="18" r="6" stroke="#10B981" stroke-width="2.5" fill="none"/>
       <path d="M16 38C16 31 19 26 24 26C29 26 32 31 32 38" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
