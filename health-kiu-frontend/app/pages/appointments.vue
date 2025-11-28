@@ -28,7 +28,7 @@
     <!-- Specialties list -->
     <div v-else class="space-y-3">
       <div
-        v-for="specialty in data?.data"
+        v-for="specialty in data?.items"
         :key="specialty.id"
         class="card hover:shadow-md cursor-pointer transition-all"
         @click="navigateTo(`/specialties/${specialty.id}`)"
@@ -42,7 +42,7 @@
             </div>
             <div>
               <h3 class="font-semibold text-gray-800">{{ specialty.name }}</h3>
-              <p v-if="specialty.description" class="text-sm text-gray-600">{{ specialty.description }}</p>
+              <p v-if="specialty.img_path" class="text-xs text-gray-500">{{ specialty.img_path }}</p>
             </div>
           </div>
           <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@
       </div>
 
       <!-- Empty state -->
-      <div v-if="data?.data.length === 0" class="card p-12 text-center">
+      <div v-if="data?.items.length === 0" class="card p-12 text-center">
         <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
@@ -61,8 +61,9 @@
     </div>
 
     <!-- Pagination info -->
-    <div v-if="data && data.total > 0" class="mt-6 text-center text-sm text-gray-600">
-      Mostrando {{ data.data.length }} de {{ data.total }} especialidades
+    <div v-if="data && data.page_size > 0" class="mt-6 text-center text-sm text-gray-600">
+      Mostrando {{ data.items.length }} especialidades
+      <span v-if="data.has_more" class="text-blue-600"> - Hay más disponibles</span>
     </div>
   </div>
 </template>
