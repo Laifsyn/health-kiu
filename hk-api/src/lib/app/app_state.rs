@@ -37,7 +37,7 @@ impl AppState {
         this.clone()
     }
 
-    fn default_hasher() -> Arc<ArgonHasher> { Arc::new(ArgonHasher::default()) }
+    pub(crate) fn default_hasher() -> Arc<ArgonHasher> { Arc::new(ArgonHasher::default()) }
 }
 
 #[cfg(test)]
@@ -60,6 +60,20 @@ async fn test_db() -> OrmDB {
 
 /// Public implementation of the application state.
 impl AppState {
+    /// Creates a new instance of the application state with a database connection.
+    pub async fn new(database_url: &str) -> Result<Self, DbErr> {
+        use sea_orm::Database;
+
+        let db = Database::connect(database_url)
+            .await
+            .map(OrmDB::from_inner)?;
+
+        Ok(Self {
+            db,
+            hasher: Self::default_hasher(),
+        })
+    }
+
     /// Returns a reference to the inner database connection.
     pub fn inner_connection(&self) -> &DatabaseConnection {
         &self.db.connection()

@@ -282,12 +282,16 @@ impl Doctor {
             .to_owned();
 
         for (user_id, cedula, passport, _, _, _) in doctors.iter() {
+            use uuid::Uuid;
+            use std::str::FromStr;
+
+            let uuid = Uuid::from_str(user_id).expect("Invalid UUID");
             let passport_value = match passport {
                 Some(p) => SimpleExpr::Value((*p).into()),
                 None => SimpleExpr::Value(Value::String(None)),
             };
             user_insert.values_panic([
-                SimpleExpr::Value((*user_id).into()),
+                SimpleExpr::Value(Value::Uuid(Some(Box::new(uuid)))),
                 SimpleExpr::Value((*cedula).into()),
                 passport_value,
             ]);
@@ -305,8 +309,12 @@ impl Doctor {
             .to_owned();
 
         for (user_id, _, _, name, password_hash, _) in doctors.iter() {
+            use uuid::Uuid;
+            use std::str::FromStr;
+
+            let uuid = Uuid::from_str(user_id).expect("Invalid UUID");
             doctor_insert.values_panic([
-                SimpleExpr::Value((*user_id).into()),
+                SimpleExpr::Value(Value::Uuid(Some(Box::new(uuid)))),
                 SimpleExpr::Value((*name).into()),
                 SimpleExpr::Value((*password_hash).into()),
             ]);
@@ -328,12 +336,19 @@ impl Doctor {
             ])
             .to_owned();
 
+        use uuid::Uuid;
+        use std::str::FromStr;
+        use chrono::NaiveDate;
+
+        let cert_date = NaiveDate::from_ymd_opt(2020, 1, 15).expect("Invalid date");
+
         for (user_id, _, _, _, _, specialties) in doctors.iter() {
             for specialty_id in specialties.iter() {
+                let doctor_uuid = Uuid::from_str(user_id).expect("Invalid UUID");
                 specialty_insert.values_panic([
-                    SimpleExpr::Value((*user_id).into()),
+                    SimpleExpr::Value(Value::Uuid(Some(Box::new(doctor_uuid)))),
                     SimpleExpr::Value((*specialty_id).into()),
-                    SimpleExpr::Value("2020-01-15".into()), // Sample certification date
+                    SimpleExpr::Value(Value::ChronoDate(Some(Box::new(cert_date)))),
                     SimpleExpr::Value(true.into()),
                 ]);
             }
