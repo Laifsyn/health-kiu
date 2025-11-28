@@ -1,4 +1,5 @@
 //! API handlers. System's Presentation layer.
+pub mod appointments;
 pub mod doctor;
 mod dto;
 mod error;

@@ -2,14 +2,16 @@
 //!
 //!
 //! It provides an abstraction over most the databases operations.
+mod appointments;
 mod doctors;
 mod specialties;
 
+pub use appointments::AppointmentRepo;
 pub use doctors::DoctorRepo;
 pub use specialties::SpecialtyRepo;
 
 use crate::domain::Pagination;
-pub trait Repository: DoctorRepo + SpecialtyRepo {}
+pub trait Repository: DoctorRepo + SpecialtyRepo + AppointmentRepo {}
 /// Exports repositories, and re-exports database models.
 pub mod prelude {
     #![allow(unused_imports)]
@@ -25,6 +27,7 @@ pub mod prelude {
     pub use sea_orm::QueryOrder;
 
     pub use super::OrmDB;
+    pub use super::appointments::AppointmentRepo;
     pub use super::doctors::DoctorRepo;
     pub use super::specialties::SpecialtyRepo;
 }

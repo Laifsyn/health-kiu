@@ -78,4 +78,9 @@ impl AppState {
     pub fn inner_connection(&self) -> &DatabaseConnection {
         &self.db.connection()
     }
+
+    /// Returns a reference to the database for repository operations.
+    pub fn db(&self) -> &OrmDB {
+        &self.db
+    }
 }

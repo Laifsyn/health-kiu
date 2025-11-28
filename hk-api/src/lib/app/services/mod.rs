@@ -6,6 +6,7 @@
 //!
 //! Basically holds what the handlers can do to the system.
 
+pub mod appointments;
 pub mod doctor;
 pub mod password_hash;
 pub mod specialties;
