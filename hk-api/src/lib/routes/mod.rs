@@ -65,8 +65,8 @@ pub fn router() -> Router<AppState> {
         .nest("/register", register::router())
         .nest("/login", login::router())
         .nest("/specialty", specialty::router())
-        .route("/doctors/:doctor_id/available-dates", get(appointments::get_available_dates))
-        .route("/doctors/:doctor_id/appointments", post(appointments::book_appointment))
+        .route("/doctors/{doctor_id}/available-dates", get(appointments::get_available_dates))
+        .route("/doctors/{doctor_id}/appointments", post(appointments::book_appointment))
         .fallback(fallback)
 }
 

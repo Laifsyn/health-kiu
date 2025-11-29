@@ -6,6 +6,8 @@
 
 pub use specialty::SpecialtyId;
 pub use user::UserId;
+/// Type alias for doctor IDs. Doctors use the same ID type as users.
+pub type DoctorId = UserId;
 
 pub mod appointment;
 pub mod doctor;

@@ -1,5 +1,4 @@
 use super::prelude::*;
-use crate::domain::dto::doctor::DoctorId;
 use chrono::{Datelike, NaiveDate};
 
 /// Maximum appointments per doctor per day
@@ -16,7 +15,7 @@ pub trait AppointmentService {
         &self,
         doctor_id: DoctorId,
         date: NaiveDate,
-    ) -> AppResult<bool>;
+    ) -> Result<bool>;
 
     /// Get available dates for a doctor within a date range (up to 30 days).
     /// Returns list of dates where doctor has availability.
@@ -25,7 +24,7 @@ pub trait AppointmentService {
         doctor_id: DoctorId,
         start_date: NaiveDate,
         end_date: NaiveDate,
-    ) -> AppResult<Vec<NaiveDate>>;
+    ) -> Result<Vec<NaiveDate>>;
 }
 
 impl AppointmentService for AppState {
@@ -33,7 +32,7 @@ impl AppointmentService for AppState {
         &self,
         doctor_id: DoctorId,
         date: NaiveDate,
-    ) -> AppResult<bool> {
+    ) -> Result<bool> {
         // Don't allow appointments on weekends
         let weekday = date.weekday();
         if weekday == chrono::Weekday::Sat || weekday == chrono::Weekday::Sun {
@@ -45,7 +44,7 @@ impl AppointmentService for AppState {
             .db
             .count_doctor_appointments_on_date(doctor_id.clone(), date)
             .await
-            .map_err(AppError::map_err_with(
+            .map_err(AppError::err_with(
                 "Failed to count daily appointments",
             ))?;
 
@@ -61,7 +60,7 @@ impl AppointmentService for AppState {
             .db
             .count_doctor_appointments_in_week(doctor_id, week_start)
             .await
-            .map_err(AppError::map_err_with(
+            .map_err(AppError::err_with(
                 "Failed to count weekly appointments",
             ))?;
 
@@ -77,7 +76,7 @@ impl AppointmentService for AppState {
         doctor_id: DoctorId,
         start_date: NaiveDate,
         end_date: NaiveDate,
-    ) -> AppResult<Vec<NaiveDate>> {
+    ) -> Result<Vec<NaiveDate>> {
         // Limit the range to 30 days max
         let max_end = start_date + chrono::Duration::days(30);
         let end_date = if end_date > max_end { max_end } else { end_date };

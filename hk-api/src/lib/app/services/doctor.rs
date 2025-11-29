@@ -27,7 +27,7 @@ impl DoctorService for AppState {
         let pagination = pagination.into();
         let Some((db_specialty, db_doctors)) = self
             .db
-            .get_doctors_by_specialty(specialty_id, pagination)
+            .get_doctors_by_specialty(specialty_id, pagination.clone())
             .await
             .map_err(AppError::err_with(
                 "Failed to get doctors by specialty",
