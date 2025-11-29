@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 use axum::Router;
 use axum::extract::Path;
@@ -11,6 +12,7 @@ use tracing::info;
 
 mod migrator_main;
 use hk_api::tls::get_rustls_config;
+use hk_api::AppState;
 pub use migrator_main::main as run_migrations;
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
@@ -20,7 +22,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
     // Initialize the TLS provider
     *hk_api::tls::PROVIDER_INIT;
 
-    let _db_url =
+    let db_url =
         run_migrations().await.context("Failed to run database migrations")?;
 
     let config = get_rustls_config("./.data")
@@ -29,7 +31,9 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let app_state = init_app_state().await?;
 
-    let app = create_app(app_state);
+    let app = create_app(app_state)
+        .route("/hello/{name}", get(greet))
+        .route("/health_check", get(health_check));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8081));
     info!("listening on https://{}/", addr);

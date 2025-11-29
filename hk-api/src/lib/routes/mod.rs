@@ -1,10 +1,11 @@
 //! API handlers. System's Presentation layer.
-mod doctor;
+pub mod appointments;
+pub mod doctor;
 mod dto;
 mod error;
 mod login;
 mod register;
-mod specialty;
+pub mod specialty;
 
 use axum::http::StatusCode;
 pub use error::{ApiError, ErrorKind};
@@ -57,11 +58,15 @@ mod prelude {
 
 /// API's Routings.
 pub fn router() -> Router<AppState> {
+    use axum::routing::{get, post};
+
     Router::new()
         .nest("/doctor", doctor::router())
         .nest("/register", register::router())
         .nest("/login", login::router())
         .nest("/specialty", specialty::router())
+        .route("/doctors/:doctor_id/available-dates", get(appointments::get_available_dates))
+        .route("/doctors/:doctor_id/appointments", post(appointments::book_appointment))
         .fallback(fallback)
 }
 

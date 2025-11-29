@@ -7,6 +7,7 @@ use crate::domain::{OutOfBoundsPagination, Paged, Pagination};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 #[derive(Deserialize)]
+#[serde(default)]
 /// Structure representing pagination parameters for requests.
 pub struct PaginatedReq {
     /// Offset from the start. Default is 0 (no skipping).

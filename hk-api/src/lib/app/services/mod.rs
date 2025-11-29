@@ -6,6 +6,7 @@
 //!
 //! Basically holds what the handlers can do to the system.
 
+pub mod appointments;
 pub mod doctor;
 pub mod login;
 pub mod register;
@@ -18,7 +19,7 @@ mod prelude {
     pub(crate) use crate::app::AppError;
     //TODO: Maybe we shouldn't rename, or name it as "ServiceResult"?
     pub use crate::app::AppResult as Result;
-    pub use crate::domain::dto::{SpecialtyId, UserId};
+    pub use crate::domain::dto::{DoctorId, SpecialtyId, UserId};
     pub use crate::domain::{Name, Pagination};
     pub use crate::repo::prelude::*;
 }

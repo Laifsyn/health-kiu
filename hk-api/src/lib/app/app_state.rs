@@ -88,6 +88,16 @@ impl AppState {
 
     /// Generates a default password hasher.
     fn default_hasher() -> Arc<ArgonHasher> { Arc::new(ArgonHasher::default()) }
+
+    /// Returns a reference to the inner database connection.
+    pub fn inner_connection(&self) -> &DatabaseConnection {
+        self.db.connection()
+    }
+
+    /// Returns a reference to the database for repository operations.
+    pub fn db(&self) -> &OrmDB {
+        &self.db
+    }
 }
 
 #[cfg(test)]
@@ -106,12 +116,4 @@ async fn test_db() -> OrmDB {
         .await
         .map(OrmDB::from_inner)
         .expect("Failed to connect to the database")
-}
-
-/// Public implementation of the application state.
-impl AppState {
-    /// Returns a reference to the inner database connection.
-    pub fn inner_connection(&self) -> &DatabaseConnection {
-        self.db.connection()
-    }
 }
