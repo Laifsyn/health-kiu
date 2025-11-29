@@ -6,6 +6,7 @@ mod login;
 mod register;
 mod specialty;
 
+use axum::http::StatusCode;
 pub use error::{ApiError, ErrorKind};
 
 /// Type alias for standard response. It's alias to std's
@@ -20,7 +21,6 @@ type ApiResultPaged<T, E = ApiError> = ApiResult<dto::PagedResp<T>, E>;
 use axum::{Json, Router};
 
 use crate::AppState;
-use crate::app::AppError;
 
 /// Convenience re-exports for [`crate::routes`].
 mod prelude {
@@ -55,10 +55,16 @@ mod prelude {
     pub type MaybePaginated = extract::Query<Option<PaginatedReq>>;
 }
 
+/// API's Routings.
 pub fn router() -> Router<AppState> {
     Router::new()
         .nest("/doctor", doctor::router())
         .nest("/register", register::router())
         .nest("/login", login::router())
         .nest("/specialty", specialty::router())
+        .fallback(fallback)
+}
+
+async fn fallback() -> (StatusCode, &'static str) {
+    (StatusCode::NOT_FOUND, "unknown endpoint")
 }
