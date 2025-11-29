@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::schema::*;
+use time::Date;
+use uuid::Uuid;
 
 use crate::log_with_context as lwc;
 #[derive(DeriveMigrationName)]
@@ -229,16 +231,19 @@ impl Doctor {
         Table::drop().table(Doctor::Table).if_exists().to_owned()
     }
 
-    async fn populate_sample_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-
-        // Sample doctors data: (user_id, cedula, passport, name, password_hash, specialties)
+    async fn populate_sample_data(
+        manager: &SchemaManager<'_>,
+    ) -> Result<(), DbErr> {
+        // Sample doctors data: (user_id, cedula, passport, name, password_hash,
+        // specialties)
         let doctors = [
             (
                 "01234567-89ab-cdef-0123-456789abcdef",
                 "001-1234567-8",
                 None,
                 "Dr. María González",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O", // bcrypt of "password123"
+                "$argon2id$v=19$m=19456,t=2,p=1$KcQXe/xfSmh2PofgP9/\
+                 6DA$ypct83GJKYvIycX1A+XZEdvk3ig55007poqqwl0qeB0", // 12345678
                 vec![1, 2], // Medicina General, Medicina Familiar
             ),
             (
@@ -246,7 +251,7 @@ impl Doctor {
                 "001-2345678-9",
                 Some("P12345678"),
                 "Dr. Carlos Rodríguez",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$mfJGD5eIEn5q7dAKTD3DTg$GJlv3KP05+G8EftAKw+ITdBO3reFJD7Vja3WFA4Ssyk",
                 vec![11, 3], // Cardiología, Medicina Interna
             ),
             (
@@ -254,7 +259,7 @@ impl Doctor {
                 "001-3456789-0",
                 None,
                 "Dr. Ana Martínez",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$mwXJO7rw70+vorZqnTYnxg$jiO3dEgWdKj27NBCaSlFYrdCnNHXF07UPhrxKR2gHCs",
                 vec![4, 11], // Pediatría, Cardiología
             ),
             (
@@ -262,7 +267,8 @@ impl Doctor {
                 "001-4567890-1",
                 None,
                 "Dr. Luis Fernández",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$jANKBYUJx1ujGcArJqaWaA$Mz9v/\
+                 DSqA1gVyO0Rwr8X3ntLOaasXX6LCcBJZMwCdEc",
                 vec![9, 12, 13], // Cirugía General, Neurología, Neurocirugía
             ),
             (
@@ -270,7 +276,7 @@ impl Doctor {
                 "001-5678901-2",
                 Some("P87654321"),
                 "Dr. Carmen López",
-                "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewgtLyq0pUPLFq6O",
+                "$argon2id$v=19$m=19456,t=2,p=1$5ZYJcaPMG2nK0MvBFvElXQ$OsrmX4h2NEuo+3kQs9j1jhOPCNMkjmXRarXjZCOEtKQ",
                 vec![6, 20], // Ginecología y Obstetricia, Dermatología
             ),
         ];
@@ -282,16 +288,13 @@ impl Doctor {
             .to_owned();
 
         for (user_id, cedula, passport, _, _, _) in doctors.iter() {
-            use uuid::Uuid;
-            use std::str::FromStr;
-
-            let uuid = Uuid::from_str(user_id).expect("Invalid UUID");
             let passport_value = match passport {
                 Some(p) => SimpleExpr::Value((*p).into()),
                 None => SimpleExpr::Value(Value::String(None)),
             };
+            let uuid = Uuid::parse_str(user_id).expect("Invalid UUID");
             user_insert.values_panic([
-                SimpleExpr::Value(Value::Uuid(Some(Box::new(uuid)))),
+                SimpleExpr::Value(uuid.into()),
                 SimpleExpr::Value((*cedula).into()),
                 passport_value,
             ]);
@@ -309,12 +312,9 @@ impl Doctor {
             .to_owned();
 
         for (user_id, _, _, name, password_hash, _) in doctors.iter() {
-            use uuid::Uuid;
-            use std::str::FromStr;
-
-            let uuid = Uuid::from_str(user_id).expect("Invalid UUID");
+            let uuid = Uuid::parse_str(user_id).expect("Invalid UUID");
             doctor_insert.values_panic([
-                SimpleExpr::Value(Value::Uuid(Some(Box::new(uuid)))),
+                SimpleExpr::Value(uuid.into()),
                 SimpleExpr::Value((*name).into()),
                 SimpleExpr::Value((*password_hash).into()),
             ]);
@@ -336,19 +336,16 @@ impl Doctor {
             ])
             .to_owned();
 
-        use uuid::Uuid;
-        use std::str::FromStr;
-        use chrono::NaiveDate;
-
-        let cert_date = NaiveDate::from_ymd_opt(2020, 1, 15).expect("Invalid date");
-
         for (user_id, _, _, _, _, specialties) in doctors.iter() {
+            let uuid = Uuid::parse_str(user_id).expect("Invalid UUID");
+            let cert_date =
+                Date::from_calendar_date(2020, time::Month::January, 15)
+                    .expect("Invalid date");
             for specialty_id in specialties.iter() {
-                let doctor_uuid = Uuid::from_str(user_id).expect("Invalid UUID");
                 specialty_insert.values_panic([
-                    SimpleExpr::Value(Value::Uuid(Some(Box::new(doctor_uuid)))),
+                    SimpleExpr::Value(uuid.into()),
                     SimpleExpr::Value((*specialty_id).into()),
-                    SimpleExpr::Value(Value::ChronoDate(Some(Box::new(cert_date)))),
+                    SimpleExpr::Value(cert_date.into()),
                     SimpleExpr::Value(true.into()),
                 ]);
             }
@@ -600,6 +597,7 @@ pub enum Asegurado {
     UserId,
     /// Identificador expedido por la aseguradora
     NaturalId,
+    NombreAseguradora,
     Description,
 }
 
@@ -610,7 +608,8 @@ impl Asegurado {
             .if_not_exists()
             .col(uuid(Asegurado::Id).primary_key())
             .col(uuid_null(Asegurado::UserId))
-            .col(string_len(Asegurado::NaturalId, 50).unique_key())
+            .col(text(Asegurado::NaturalId))
+            .col(text(Asegurado::NombreAseguradora))
             .col(text_null(Asegurado::Description))
             .to_owned()
     }
@@ -618,7 +617,7 @@ impl Asegurado {
     pub fn table_user_fk() -> ForeignKeyCreateStatement {
         ForeignKey::create()
             .from(Asegurado::Table, Asegurado::UserId)
-            .to(User::Table, User::Id)
+            .to(Patient::Table, Patient::Id)
             .on_delete(ForeignKeyAction::SetNull)
             .on_update(ForeignKeyAction::Restrict)
             .take()
@@ -637,6 +636,7 @@ pub enum Cita {
     PacienteId,
     AseguradoId,
     Fecha,
+    TimestampEnd,
     Estado,
 }
 
@@ -648,8 +648,9 @@ impl Cita {
             .col(uuid(Cita::Id).primary_key())
             .col(uuid_null(Cita::DoctorId))
             .col(uuid_null(Cita::PacienteId))
-            .col(timestamp(Cita::Fecha))
             .col(uuid_null(Cita::AseguradoId))
+            .col(timestamp(Cita::Fecha))
+            .col(timestamp_null(Cita::TimestampEnd))
             .col(string_len(Cita::Estado, 16))
             .to_owned()
     }

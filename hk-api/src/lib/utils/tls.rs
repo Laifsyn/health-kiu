@@ -31,7 +31,7 @@ pub static PROVIDER_INIT: std::sync::LazyLock<()> =
 /// If the certificate and key files exist in the data directory, they are
 /// loaded. Otherwise, a self-signed certificate is generated and saved to the
 /// data directory.
-pub fn init(data_path: impl AsRef<Path>) -> Result<ServerConfig> {
+pub fn init_certificates(data_path: impl AsRef<Path>) -> Result<ServerConfig> {
     let data_path = data_path.as_ref();
 
     let (cert_path, key_path) =

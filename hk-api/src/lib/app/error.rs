@@ -1,10 +1,13 @@
 use std::borrow::Cow;
 
+use argon2::password_hash::Error as ArgonHashError;
+
 /// Errors that can occur in the application layer.
 pub struct AppError {
     source: ErrorKind,
     context: Option<CowStr>,
 }
+
 type CowStr = Cow<'static, str>;
 impl AppError {
     /// Builds a [`ServiceError`] with no context.
@@ -25,9 +28,11 @@ impl AppError {
         self
     }
 
+    pub fn invalid_password() -> Self { Self::new(ErrorKind::InvalidPassword) }
+
     /// Returns a closure that creates a [`ServiceError`] with the given
     /// context.
-    pub fn map_err_with<E>(ctx: impl Into<CowStr>) -> impl FnOnce(E) -> Self
+    pub fn err_with<E>(ctx: impl Into<CowStr>) -> impl FnOnce(E) -> Self
     where
         E: Into<ErrorKind>,
     {
@@ -52,6 +57,13 @@ impl<T> crate::ResultExt for Result<T, AppError> {
     }
 }
 
+impl<T> From<T> for AppError
+where
+    T: Into<ErrorKind>,
+{
+    fn from(value: T) -> Self { Self::new(value) }
+}
+
 #[derive(Debug, thiserror::Error)]
 /// Error Kinds for [`ServiceError`]
 pub enum ErrorKind {
@@ -61,6 +73,46 @@ pub enum ErrorKind {
     DatabaseError(#[from] sea_orm::DbErr),
     #[error("Validation Error")]
     ValidationError,
+    #[error("Invalid Password")]
+    InvalidPassword,
+    #[error("Argon Hash Error")]
+    ArgonHashError(ArgonHashError),
     #[error("Unknown Error")]
     Unknown(#[from] color_eyre::Report),
+}
+
+impl From<ArgonHashError> for ErrorKind {
+    fn from(value: ArgonHashError) -> Self { ErrorKind::ArgonHashError(value) }
+}
+
+impl From<AppError> for crate::routes::ApiError {
+    fn from(value: AppError) -> Self {
+        use crate::routes::{ApiError, ErrorKind as ApiErrorKind};
+        let AppError { context, source } = value;
+
+        match source {
+            ErrorKind::NotFound => {
+                tracing::debug!("Not Found Error: {:?}", context);
+                ApiError::new(ApiErrorKind::NotFound)
+            }
+            ErrorKind::DatabaseError(db_err) => {
+                tracing::error!(err=?db_err, context=?context, "Database Error");
+                ApiError::new(ApiErrorKind::Internal)
+            }
+            ErrorKind::ValidationError => {
+                ApiError::new(ApiErrorKind::BadRequest)
+            }
+            ErrorKind::InvalidPassword => {
+                ApiError::new(ApiErrorKind::Unauthorized)
+            }
+            ErrorKind::ArgonHashError(error) => {
+                tracing::error!(err=?error, context=?context, "Argon Hash Error");
+                ApiError::new(ApiErrorKind::Internal)
+            }
+            ErrorKind::Unknown(report) => {
+                tracing::error!(err=?report, context=?context, "Unknown Error");
+                ApiError::new(ApiErrorKind::Internal)
+            }
+        }
+    }
 }

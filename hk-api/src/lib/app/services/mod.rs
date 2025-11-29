@@ -8,7 +8,8 @@
 
 pub mod appointments;
 pub mod doctor;
-pub mod password_hash;
+pub mod login;
+pub mod register;
 pub mod specialties;
 
 /// Convenience re-exports for [`crate::app::services`].
@@ -16,9 +17,9 @@ mod prelude {
     #![allow(unused_imports)]
     pub use crate::AppState;
     pub(crate) use crate::app::AppError;
-    pub use crate::app::AppResult;
-    pub use crate::domain::dto::{DoctorId, SpecialtyId};
+    //TODO: Maybe we shouldn't rename, or name it as "ServiceResult"?
+    pub use crate::app::AppResult as Result;
+    pub use crate::domain::dto::{DoctorId, SpecialtyId, UserId};
     pub use crate::domain::{Name, Pagination};
     pub use crate::repo::prelude::*;
 }
-

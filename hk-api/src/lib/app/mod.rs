@@ -12,13 +12,15 @@ pub mod error;
 pub mod services;
 
 /// Type alias for `application layer's` results.
+///
+/// We could also call it the Service's Result.
 pub type AppResult<T, E = AppError> = std::result::Result<T, E>;
 pub(crate) use error::AppError;
 
 /// Convenience re-exports for Services.
 pub mod services_prelude {
-    pub use services::doctor::DoctorService;
-    pub use services::password_hash::PasswordHashService;
+    pub(crate) use services::doctor::DoctorService;
+    pub use services::login::LoginService;
     pub use services::specialties::SpecialtyService;
 
     use super::services;

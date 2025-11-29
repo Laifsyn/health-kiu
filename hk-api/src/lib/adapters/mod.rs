@@ -1,6 +1,6 @@
-//! Infrastructure-dependant implementations for tha
+//! Newtype wrappers.
 pub mod crypto;
 /// HTTP clients for third-party services.
 pub mod http;
-/// Interaction with the database.
+/// Database Repository's Abstraction via Use Cases.
 pub mod repo;

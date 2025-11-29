@@ -7,20 +7,28 @@ mod doctor;
 mod id;
 mod name;
 mod pagination;
+mod patient;
+mod session;
 mod specialty;
+/// JWT's token
+mod token;
+mod user;
 
 pub use doctor::*;
 pub use id::*;
 pub use name::*;
 pub use pagination::*;
+pub use patient::*;
 pub use specialty::*;
+pub use user::*;
 
+/// Convenience re-exports for the dto's layer in [`crate::routes::dto`].
 mod prelude {
     #![allow(unused_imports)]
     pub use super::ApiName;
-    pub use crate::domain::Paged;
     pub use crate::domain::dto::doctor::Doctor;
     pub use crate::domain::dto::specialty::Specialty;
-    pub use crate::domain::dto::{DoctorId, SpecialtyId};
+    pub use crate::domain::dto::{SpecialtyId, UserId};
+    pub(crate) use crate::domain::{Paged, dto as domain_dto};
     pub use crate::routes::{ApiError, ErrorKind};
 }

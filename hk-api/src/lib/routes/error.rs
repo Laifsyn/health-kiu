@@ -6,6 +6,8 @@ use axum::Json;
 use axum::response::IntoResponse;
 use serde::Serialize;
 
+use crate::domain::OutOfBoundsPagination;
+
 #[derive(thiserror::Error, Debug)]
 pub struct ApiError {
     pub context: Option<Cow<'static, str>>,
@@ -36,6 +38,11 @@ impl ApiError {
         move |e| Self::new_with_context(e, ctx)
     }
 
+    /// Attaches context to the error, returning a new `ApiError`.
+    pub fn context(self, ctx: impl Into<Cow<'static, str>>) -> Self {
+        Self { context: Some(ctx.into()), ..self }
+    }
+
     pub fn bad_request(ctx: impl Display) -> Self {
         Self::new_with_context(
             ErrorKind::BadRequest,
@@ -48,6 +55,16 @@ impl ApiError {
             ErrorKind::NotFound,
             Cow::Owned(format!("{item} not found")),
         )
+    }
+
+    pub fn internal(ctx: impl Display) -> Self {
+        Self::new_with_context(ErrorKind::Internal, Cow::Owned(ctx.to_string()))
+    }
+
+    pub fn unauthorized() -> Self { Self::new(ErrorKind::Unauthorized) }
+
+    pub fn unauthorized_user_credentials() -> Self {
+        Self::unauthorized().context("Invalid credentials")
     }
 }
 
@@ -114,6 +131,7 @@ mod test {
 }
 
 #[derive(thiserror::Error, Debug)]
+/// API's Layer Error Kinds
 pub enum ErrorKind {
     #[error("Database error")]
     Database(#[from] sea_orm::DbErr),
@@ -126,6 +144,7 @@ pub enum ErrorKind {
     #[error("Internal server error")]
     Internal,
 }
+
 impl ErrorKind {
     pub fn kind(&self) -> &'static str {
         match self {
@@ -173,5 +192,12 @@ impl Serialize for ErrorKind {
             }
         }
         state.end()
+    }
+}
+
+impl From<OutOfBoundsPagination> for ErrorKind {
+    fn from(err: OutOfBoundsPagination) -> Self {
+        let OutOfBoundsPagination {} = err;
+        ErrorKind::BadRequest
     }
 }

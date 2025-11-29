@@ -7,6 +7,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::get;
 use color_eyre::eyre::Context;
+use hk_api::create_app;
 use tracing::info;
 
 mod migrator_main;
@@ -28,10 +29,9 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .await
         .context("Failed to get rustls config")?;
 
-    // Initialize application state
-    let app_state = Arc::new(AppState::new(&db_url).await.context("Failed to initialize app state")?);
+    let app_state = init_app_state().await?;
 
-    let app = hk_api::create_router(app_state)
+    let app = create_app(app_state)
         .route("/hello/{name}", get(greet))
         .route("/health_check", get(health_check));
 
@@ -44,6 +44,11 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .context("Error occurred while running server")?;
 
     Ok(())
+}
+
+/// Initializes the application state.
+async fn init_app_state() -> color_eyre::Result<hk_api::AppState> {
+    hk_api::AppState::new(None).await
 }
 
 async fn greet(Path(name): Path<String>) -> impl IntoResponse {

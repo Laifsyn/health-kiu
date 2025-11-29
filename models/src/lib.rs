@@ -1,9 +1,9 @@
+pub mod composite;
 mod entities;
-mod id;
+mod ulid;
 /// Flattened re-exports for easier access to Models' types.
 pub use entities::*;
-pub use id::Id;
-
+pub use ulid::Ulid;
 /// Re-exports Models' Entities
 pub mod prelude {
     pub use super::entities::prelude::*;

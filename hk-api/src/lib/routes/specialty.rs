@@ -2,17 +2,22 @@ use axum::extract::{Query, State};
 use dto::ApiSpecialty;
 
 use super::prelude::*;
+pub fn router() -> Router<AppState> {
+    use axum::routing::get;
 
+    Router::new().route("/specialties", get(get_specialties))
+}
 pub async fn get_specialties(
-    Query(pagination): Query<PaginatedReq>,
+    Query(pagination): MaybePaginated,
     State(app): StateApp,
-) -> ResultPaged<ApiSpecialty> {
-    let e = app
+) -> ApiResultPaged<ApiSpecialty> {
+    let pagination = pagination.unwrap_or_default();
+    let specialties = app
         .get_specialties(pagination.clone())
         .await
         .map(|e| PagedResp::from_paged_with_transform(e, ApiSpecialty::from))?;
 
-    Ok(e.json())
+    Ok(specialties.json())
 }
 
 #[cfg(test)]
