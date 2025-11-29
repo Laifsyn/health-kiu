@@ -8,6 +8,7 @@
 
 pub mod doctor;
 pub mod login;
+pub mod register;
 pub mod specialties;
 
 /// Convenience re-exports for [`crate::app::services`].

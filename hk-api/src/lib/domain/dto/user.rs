@@ -12,3 +12,7 @@ id_wrapper!(
 impl From<UserId> for sea_orm::Value {
     fn from(id: UserId) -> Self { sea_orm::Value::from(id.0) }
 }
+
+impl From<uuid::Uuid> for UserId {
+    fn from(id: uuid::Uuid) -> Self { UserId(Ulid::from_uuid(id)) }
+}

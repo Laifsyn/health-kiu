@@ -3,36 +3,47 @@ use axum_extra::TypedHeader;
 use headers::Authorization;
 use headers::authorization::Basic;
 
-#[derive(serde::Serialize)]
-#[serde(tag = "type", content = "content")]
-pub enum UserKind {
-    Doctor(dto::ApiDoctor),
-    Patient(dto::ApiPatient),
+use super::prelude::*;
+use crate::routes::dto::ApiUserId;
+
+type ApiAuthUser = ApiUserId;
+
+pub fn router() -> Router<AppState> {
+    Router::new()
+        .route("/login/doctor", axum::routing::post(login_doctor))
+        .route("/login/patient", axum::routing::post(login_patient))
 }
 
-type UserLoginResp = UserKind;
-
-use super::prelude::*;
-#[allow(unused)]
-pub async fn login(
+/// Reads the `Authorization` header with [`Basic`] scheme to login a user.
+///
+/// TODO: Document how [`Basic`] decodes credentials.
+pub async fn login_doctor(
     TypedHeader(credentials): TypedHeader<Authorization<Basic>>,
     State(state): StateApp,
-) -> ApiResult<UserLoginResp> {
+) -> ApiResult<ApiAuthUser> {
     let username = credentials.0.username();
     let password = credentials.0.password().as_bytes();
 
-    let doctor_opt = state.login_doctor(username, password).await?;
+    let doctor = state.login_doctor(username, password).await?.ok_or(
+        ApiError::unauthorized_user_credentials()
+            .context("Invalid cedula or password"),
+    )?;
 
-    if let Some(doctor) = doctor_opt {
-        return Ok(Json(UserKind::Doctor(doctor.into())));
-    }
+    Ok(Json(ApiUserId::Doctor(doctor.id.into())))
+}
 
-    let patient_opt = state.login_patient(username, password).await?;
+pub async fn login_patient(
+    TypedHeader(credentials): TypedHeader<Authorization<Basic>>,
+    State(state): StateApp,
+) -> ApiResult<ApiAuthUser> {
+    let username = credentials.0.username();
+    let password = credentials.0.password();
 
-    if let Some(patient) = patient_opt {
-        return Ok(Json(UserKind::Patient(patient.into())));
-    }
-    let invalid_credentials =
-        ApiError::unauthorized().context("Invalid username or password");
-    Err(invalid_credentials)
+    let patient =
+        state.login_patient(username, password.as_bytes()).await?.ok_or(
+            ApiError::unauthorized_user_credentials()
+                .context("Invalid cedula or password"),
+        )?;
+
+    Ok(Json(ApiUserId::Patient(patient.id.into())))
 }

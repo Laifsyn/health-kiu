@@ -1,3 +1,4 @@
+use sea_orm::TransactionTrait;
 use sea_orm::prelude::*;
 
 use super::prelude::*;
@@ -34,6 +35,11 @@ pub(crate) trait DoctorRepo {
         &self,
         cedula: &str,
     ) -> Result<Option<DoctorUser>>;
+
+    async fn register_doctor(
+        &self,
+        payload: RegisterDbDoctor,
+    ) -> Result<DoctorUser>;
 }
 
 impl DoctorRepo for OrmDB {
@@ -121,7 +127,7 @@ impl DoctorRepo for OrmDB {
             .order_by(cita::Column::Fecha, sea_orm::Order::Asc)
             .all(self.connection())
             .await?;
-        todo!()
+        unimplemented!("I don't know what to write here yet")
     }
 
     async fn get_doctor_by_cedula(
@@ -134,6 +140,38 @@ impl DoctorRepo for OrmDB {
             .one(self.connection())
             .await
             .map(|t| t.and_then(flatten_doctor_user))
+    }
+
+    async fn register_doctor(
+        &self,
+        payload: RegisterDbDoctor,
+    ) -> Result<DoctorUser> {
+        use sea_orm::ActiveValue::Set;
+        let RegisterDbDoctor { name, password_hash, passport, cedula, id } =
+            payload;
+
+        let doctor_id: Uuid = id.unwrap_or_default().as_uuid();
+
+        let user_active_model = user::ActiveModel {
+            id: Set(doctor_id),
+            passport: Set(passport),
+            cedula: Set(cedula),
+        };
+
+        let doctor_active_model = doctor::ActiveModel {
+            id: Set(doctor_id),
+            name: Set(name),
+            password_hash: Set(password_hash),
+        };
+
+        let txn = self.connection().begin().await?;
+
+        let user: DbUser = user_active_model.insert(&txn).await?;
+        let doctor: DbDoctor = doctor_active_model.insert(&txn).await?;
+
+        txn.commit().await?;
+
+        Ok((doctor, user))
     }
 }
 

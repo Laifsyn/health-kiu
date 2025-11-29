@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::UserRole;
 use crate::routes::ApiError;
-use crate::routes::dto::user::UserKinds;
+use crate::routes::dto::user::ApiUserId;
 
 #[repr(transparent)]
 /// Token used to identify a system's user
@@ -19,7 +19,7 @@ pub struct UserClaim {
     /// Not Before (as UTC timestamp)
     nbf: usize,
     /// Subject (whom token refers to)
-    sub: UserKinds,
+    sub: ApiUserId,
 }
 
 impl UserToken {
@@ -48,7 +48,7 @@ impl UserToken {
             .map_err(ApiError::internal)
     }
 
-    pub fn new(user: UserKinds) -> Self {
+    pub fn new(user: ApiUserId) -> Self {
         let now = chrono::Utc::now().timestamp() as usize;
         let claim = UserClaim {
             iss: "health-kiu".to_string(),
@@ -63,5 +63,5 @@ impl UserToken {
         })
     }
 
-    pub fn user_kind(&self) -> &UserKinds { &self.0.claims.sub }
+    pub fn user_kind(&self) -> &ApiUserId { &self.0.claims.sub }
 }

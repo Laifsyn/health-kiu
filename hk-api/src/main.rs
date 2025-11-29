@@ -27,7 +27,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .await
         .context("Failed to get rustls config")?;
 
-    let app_state = init_app_state();
+    let app_state = init_app_state().await?;
 
     let app = create_app(app_state);
 
@@ -42,7 +42,10 @@ async fn main() -> color_eyre::eyre::Result<()> {
     Ok(())
 }
 
-fn init_app_state() -> hk_api::AppState { hk_api::AppState::default() }
+/// Initializes the application state.
+async fn init_app_state() -> color_eyre::Result<hk_api::AppState> {
+    hk_api::AppState::new(None).await
+}
 
 async fn greet(Path(name): Path<String>) -> impl IntoResponse {
     format!("Hello {}!", name)

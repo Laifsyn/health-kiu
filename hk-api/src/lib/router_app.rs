@@ -5,6 +5,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::{AppState, Ulid};
 
+/// Instantiates the main application router with all routes and middlewares.
 pub fn create_app(app_state: AppState) -> Router {
     let cors = CorsLayer::new()
         .allow_origin(

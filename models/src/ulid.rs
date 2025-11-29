@@ -23,12 +23,21 @@ use uuid::Uuid;
 pub struct Ulid(pub ulid::Ulid);
 
 impl Ulid {
+    pub const BUFFER_LEN: usize = ulid::ULID_LEN;
+
     pub const fn from_uuid(uuid: Uuid) -> Self {
         Ulid(ulid::Ulid::from_bytes(uuid.into_bytes()))
     }
 
     /// Converts the ULID to a UUID.
     pub const fn as_uuid(&self) -> Uuid { Uuid::from_bytes(self.0.to_bytes()) }
+
+    pub fn as_str<'buf>(
+        &self,
+        buf: &'buf mut [u8; Self::BUFFER_LEN],
+    ) -> &'buf mut str {
+        self.0.array_to_str(buf)
+    }
 
     /// Generates a new ULID.
     pub fn new() -> Self { Self::default() }

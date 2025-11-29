@@ -11,7 +11,7 @@ use crate::AppState;
 use crate::domain::UserRole;
 use crate::routes::ApiError;
 use crate::routes::dto::token::UserToken;
-use crate::routes::dto::user::UserKinds;
+use crate::routes::dto::user::ApiUserId;
 
 pub struct Session<T> {
     user_id: Ulid,
@@ -76,7 +76,7 @@ impl FromRequestParts<AppState> for DoctorSession {
 
         // check role
         match &token.user_kind() {
-            UserKinds::Doctor(id) => {
+            ApiUserId::Doctor(id) => {
                 Ok(Self { user_id: *id, _role: PhantomData })
             }
             _ => {
@@ -98,7 +98,7 @@ impl FromRequestParts<AppState> for PatientSession {
 
         // check role
         match &token.user_kind() {
-            UserKinds::Patient(id) => {
+            ApiUserId::Patient(id) => {
                 Ok(Self { user_id: *id, _role: PhantomData })
             }
             _ => {

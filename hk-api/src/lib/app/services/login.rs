@@ -1,11 +1,7 @@
-use color_eyre::eyre::{self, ContextCompat, eyre};
-
 use super::prelude::*;
 use crate::adapters::crypto::PasswordHasher;
 use crate::domain::dto::doctor::Doctor;
 use crate::domain::dto::patient::Patient;
-use crate::domain::dto::user::UserId;
-use crate::domain::{self, UserRole};
 
 pub trait LoginService {
     async fn login_doctor(
@@ -34,10 +30,10 @@ impl LoginService for AppState {
         password: &[u8],
     ) -> Result<Option<Doctor>> {
         let fetched_users = self.db.get_doctor_by_cedula(username).await?;
-        let Some((fetched_users)) = fetched_users else {
+        let Some(fetched_users) = fetched_users else {
             return Ok(None);
         };
-        let (doctor, user) = &fetched_users;
+        let (doctor, _user) = &fetched_users;
 
         let verified = self.verify_password(&doctor.password_hash, password);
         if !verified {
@@ -52,10 +48,10 @@ impl LoginService for AppState {
         password: &[u8],
     ) -> Result<Option<Patient>> {
         let fetched_users = self.db.get_patient_by_cedula(username).await?;
-        let Some((fetched_users)) = fetched_users else {
+        let Some(fetched_users) = fetched_users else {
             return Ok(None);
         };
-        let (patient, user) = &fetched_users;
+        let (patient, _user) = &fetched_users;
 
         let verified = self.verify_password(&patient.password_hash, password);
         if !verified {
@@ -65,33 +61,33 @@ impl LoginService for AppState {
     }
 }
 
-fn hash_password(this: &AppState, password: &[u8]) -> Result<String> {
-    this.hasher
-        .hash_password(password)
-        .map_err(|e| {
-            // FIXME: We shouldn't log the password source
-            eyre!(
-                "Failed to hash password (source: {}): {}",
-                password_source_display(password),
-                e
-            )
-        })
-        .map_err(AppError::from)
-}
+// fn hash_password(this: &AppState, password: &[u8]) -> Result<String> {
+//     this.hasher
+//         .hash_password(password)
+//         .map_err(|e| {
+//             // FIXME: We shouldn't log the password source
+//             eyre!(
+//                 "Failed to hash password (source: {}): {}",
+//                 password_source_display(password),
+//                 e
+//             )
+//         })
+//         .map_err(AppError::from)
+// }
 
-/// Parse the given bytes as a UTF-8 string, or as a hex dump if not valid
-/// UTF-8.
-fn password_source_display(bytes: &[u8]) -> String {
-    const PRINT_LIMIT: usize = 32;
-    let len = bytes.len();
-    let bytes = &bytes[..len.min(PRINT_LIMIT)];
-    let err = match str::from_utf8(bytes) {
-        Ok(s) => s.to_string(),
-        Err(_) => format!("{:x?}", bytes),
-    };
-    if len > PRINT_LIMIT {
-        format!("{}... (+{})", err, len - PRINT_LIMIT)
-    } else {
-        err
-    }
-}
+// /// Parse the given bytes as a UTF-8 string, or as a hex dump if not valid
+// /// UTF-8.
+// fn password_source_display(bytes: &[u8]) -> String {
+//     const PRINT_LIMIT: usize = 32;
+//     let len = bytes.len();
+//     let bytes = &bytes[..len.min(PRINT_LIMIT)];
+//     let err = match str::from_utf8(bytes) {
+//         Ok(s) => s.to_string(),
+//         Err(_) => format!("{:x?}", bytes),
+//     };
+//     if len > PRINT_LIMIT {
+//         format!("{}... (+{})", err, len - PRINT_LIMIT)
+//     } else {
+//         err
+//     }
+// }

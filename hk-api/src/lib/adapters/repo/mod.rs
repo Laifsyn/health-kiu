@@ -1,5 +1,6 @@
 //!
 //! It provides an abstraction over all database operations (if not most).
+
 mod appointment;
 mod doctors;
 mod patient;
@@ -8,11 +9,12 @@ mod specialties;
 pub(crate) use doctors::DoctorRepo;
 pub(crate) use patient::PatientRepo;
 pub(crate) use specialties::SpecialtyRepo;
+pub(crate) mod dto;
 
 /// Type alias for repository results.
 pub type Result<T, E = sea_orm::DbErr> = std::result::Result<T, E>;
 use crate::domain::Pagination;
-// pub trait Repository: DoctorRepo + SpecialtyRepo {}
+
 /// Exports repositories, and re-exports database models.
 pub mod prelude {
     #![allow(unused_imports)]
@@ -25,9 +27,10 @@ pub mod prelude {
     pub use models::patient::Model as DbPatient;
     pub use models::user::Model as DbUser;
     pub use models::{prelude as entities, *};
-    pub use sea_orm::QueryOrder;
+    pub use sea_orm::{QueryOrder, TransactionTrait};
 
     pub use super::OrmDB;
+    pub(super) use super::dto::*;
     pub(crate) use super::{DoctorRepo, PatientRepo, SpecialtyRepo};
     pub use crate::Ulid;
     pub use crate::repo::Result;

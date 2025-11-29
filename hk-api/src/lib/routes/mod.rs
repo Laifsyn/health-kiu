@@ -3,6 +3,7 @@ mod doctor;
 mod dto;
 mod error;
 mod login;
+mod register;
 mod specialty;
 
 pub use error::{ApiError, ErrorKind};
@@ -20,7 +21,6 @@ use axum::{Json, Router};
 
 use crate::AppState;
 use crate::app::AppError;
-use crate::domain::OutOfBoundsPagination;
 
 /// Convenience re-exports for [`crate::routes`].
 mod prelude {
@@ -28,9 +28,10 @@ mod prelude {
     use std::sync::Arc;
 
     use axum::extract;
-    pub use dto::{PagedResp, PaginatedReq};
+    pub use extract::State;
 
-    pub use super::*;
+    pub use super::dto::{PagedResp, PaginatedReq};
+    pub(super) use super::{dto, *};
     pub use crate::app::AppState;
     pub use crate::app::services_prelude::*;
     pub(crate) use crate::domain::dto as domain_dto;
@@ -54,17 +55,10 @@ mod prelude {
     pub type MaybePaginated = extract::Query<Option<PaginatedReq>>;
 }
 
-impl From<OutOfBoundsPagination> for ErrorKind {
-    fn from(err: OutOfBoundsPagination) -> Self {
-        let OutOfBoundsPagination {} = err;
-        ErrorKind::BadRequest
-    }
-}
-
-impl From<AppError> for ApiError {
-    fn from(_value: AppError) -> Self { todo!("Finish Convert implementation") }
-}
-
 pub fn router() -> Router<AppState> {
-    Router::new().nest("/doctor", doctor::router())
+    Router::new()
+        .nest("/doctor", doctor::router())
+        .nest("/register", register::router())
+        .nest("/login", login::router())
+        .nest("/specialty", specialty::router())
 }

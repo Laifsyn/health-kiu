@@ -1,13 +1,12 @@
-use std::str::FromStr;
-
 use strum_macros::{EnumIs, EnumString};
 
 use crate::domain::dto::UserId;
 
+/// Represents authenticated user information.
 pub struct Auth {
-    id: UserId,
-    name: String,
-    role: UserRole,
+    pub(crate) id: UserId,
+    pub(crate) name: String,
+    pub(crate) role: UserRole,
 }
 
 #[derive(Clone, PartialEq, Eq, EnumString, EnumIs)]

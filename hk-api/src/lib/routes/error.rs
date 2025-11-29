@@ -6,6 +6,8 @@ use axum::Json;
 use axum::response::IntoResponse;
 use serde::Serialize;
 
+use crate::domain::OutOfBoundsPagination;
+
 #[derive(thiserror::Error, Debug)]
 pub struct ApiError {
     pub context: Option<Cow<'static, str>>,
@@ -60,6 +62,10 @@ impl ApiError {
     }
 
     pub fn unauthorized() -> Self { Self::new(ErrorKind::Unauthorized) }
+
+    pub fn unauthorized_user_credentials() -> Self {
+        Self::unauthorized().context("Invalid credentials")
+    }
 }
 
 impl<T: Into<ErrorKind>> From<T> for ApiError {
@@ -125,6 +131,7 @@ mod test {
 }
 
 #[derive(thiserror::Error, Debug)]
+/// API's Layer Error Kinds
 pub enum ErrorKind {
     #[error("Database error")]
     Database(#[from] sea_orm::DbErr),
@@ -137,6 +144,7 @@ pub enum ErrorKind {
     #[error("Internal server error")]
     Internal,
 }
+
 impl ErrorKind {
     pub fn kind(&self) -> &'static str {
         match self {
@@ -184,5 +192,12 @@ impl Serialize for ErrorKind {
             }
         }
         state.end()
+    }
+}
+
+impl From<OutOfBoundsPagination> for ErrorKind {
+    fn from(err: OutOfBoundsPagination) -> Self {
+        let OutOfBoundsPagination {} = err;
+        ErrorKind::BadRequest
     }
 }

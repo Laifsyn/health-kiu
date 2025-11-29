@@ -20,6 +20,7 @@ pub use name::*;
 pub use pagination::*;
 pub use patient::*;
 pub use specialty::*;
+pub use user::*;
 
 /// Convenience re-exports for the dto's layer in [`crate::routes::dto`].
 mod prelude {

@@ -2,6 +2,7 @@
 
 use std::sync::Arc;
 
+use sea_orm::ConnectOptions;
 use sea_orm::prelude::*;
 
 use crate::adapters::crypto::{AppKeys, ArgonHasher};
@@ -12,6 +13,7 @@ use crate::repo::OrmDB;
 pub struct AppState {
     /// Password Hasher
     pub(super) hasher: Arc<ArgonHasher>,
+    /// Database Connection
     pub(super) db: OrmDB,
     pub(super) public_key: Arc<[u8]>,
     pub(super) private_key: Arc<[u8]>,
@@ -48,20 +50,21 @@ impl AppState {
         this.clone()
     }
 
-    pub fn new(db_url: Option<&str>) -> color_eyre::eyre::Result<Self> {
+    /// Creates a new instance of the application state.
+    pub async fn new(db_url: Option<String>) -> color_eyre::eyre::Result<Self> {
         use sea_orm::Database;
 
-        let database_url = match db_url {
-            Some(url) => url.to_string(),
-            None => {
-                std::env::var(Self::DB_URL_ENV_VAR).expect(
-                    "DATABASE_URL must be set in order to run the application",
-                )
-            }
-        };
+        let database_url = db_url.unwrap_or_else(|| {
+            std::env::var(Self::DB_URL_ENV_VAR).expect(
+                "DATABASE_URL must be set in order to run the application",
+            )
+        });
 
-        todo!();
-        let db_conn = Database::connect(&database_url)?;
+        let mut connect_options = ConnectOptions::new(database_url.clone());
+        // TODO: Use env variables to configure the connection options.
+        connect_options.max_connections(5);
+
+        let db_conn = Database::connect(connect_options).await?;
         let db = OrmDB::from_inner(db_conn);
         let AppKeys { private, public } = Self::keys();
 
@@ -78,8 +81,12 @@ impl AppState {
     pub fn private_key(&self) -> &[u8] { self.private_key.as_ref() }
 
     /// Reads from the [`fs`](std::fs), and returns the stored keys.
+    ///
+    /// # PANICS
+    /// Panics if the keys cannot be read from the file system.
     fn keys() -> AppKeys { AppKeys::new() }
 
+    /// Generates a default password hasher.
     fn default_hasher() -> Arc<ArgonHasher> { Arc::new(ArgonHasher::default()) }
 }
 
