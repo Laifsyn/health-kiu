@@ -6,7 +6,7 @@ use chrono::{Datelike, NaiveDate};
 use sea_orm::prelude::Uuid;
 
 use crate::app::services::appointments::AppointmentService;
-use crate::domain::dto::doctor::DoctorId;
+use crate::domain::dto::DoctorId;
 use crate::routes::prelude::StateApp;
 use crate::repo::prelude::AppointmentRepo;
 
@@ -68,7 +68,7 @@ pub async fn get_available_dates(
     // Parse doctor ID
     let doctor_uuid = Uuid::parse_str(&doctor_id)
         .map_err(|e| (StatusCode::BAD_REQUEST, format!("Invalid doctor ID: {}", e)))?;
-    let doctor_id_domain = DoctorId(doctor_uuid);
+    let doctor_id_domain: DoctorId = doctor_uuid.into();
 
     // Parse start date or use today
     let start_date = if let Some(date_str) = &query.start_date {
