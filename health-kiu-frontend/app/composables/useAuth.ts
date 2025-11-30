@@ -33,7 +33,7 @@ export const useAuth = () => {
       // Create Basic Auth header
       const basicAuth = btoa(`${credentials.cedula}:${credentials.password}`)
 
-      const response = await $fetch(`${apiBase}/login/${credentials.role}`, {
+      const response = await $fetch<{ type: string; id: string }>(`${apiBase}/login/${credentials.role}`, {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${basicAuth}`,
@@ -41,9 +41,9 @@ export const useAuth = () => {
         }
       })
 
-      // Save user data
+      // Save user data - extract the id field from the response object
       user.value = {
-        id: response as string,
+        id: response.id,
         role: credentials.role,
         name: '', // Will be filled from profile endpoint later
         cedula: credentials.cedula
@@ -107,7 +107,12 @@ export const useAuth = () => {
       const savedUser = localStorage.getItem('user')
       if (savedUser) {
         try {
-          user.value = JSON.parse(savedUser)
+          const parsed = JSON.parse(savedUser)
+          // Handle old format where id was an object { type, id }
+          if (parsed.id && typeof parsed.id === 'object' && parsed.id.id) {
+            parsed.id = parsed.id.id
+          }
+          user.value = parsed
         } catch (e) {
           console.error('Error parsing saved user:', e)
         }

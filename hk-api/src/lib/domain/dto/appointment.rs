@@ -17,4 +17,7 @@ pub struct Appointment {
     pub patient: Patient,
     pub ss: SsId,
     pub status: AppointmentStatus,
+    pub date_time: chrono::NaiveDateTime,
+    pub end_time: Option<chrono::NaiveDateTime>,
+    pub hospital: Option<String>,
 }

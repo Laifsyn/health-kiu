@@ -8,20 +8,7 @@ export default defineNuxtConfig({
   // Configure API base URL for backend
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE_URL || '/api-proxy'
-    }
-  },
-
-  // Nitro server configuration for proxy
-  nitro: {
-    devProxy: {
-      '/api-proxy': {
-        target: 'https://127.0.0.1:8081',
-        changeOrigin: true,
-        prependPath: true,
-        rewrite: (path) => path.replace(/^\/api-proxy/, ''),
-        secure: false // Disable SSL verification for self-signed certs
-      }
+      apiBase: process.env.API_BASE_URL || '/api'
     }
   },
 

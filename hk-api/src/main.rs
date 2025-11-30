@@ -20,14 +20,15 @@ async fn main() -> color_eyre::eyre::Result<()> {
     hk_api::init_env();
     hk_api::logger_init();
     // Initialize the TLS provider
-    *hk_api::tls::PROVIDER_INIT;
+    // *hk_api::tls::PROVIDER_INIT;  // Commented for HTTP development
 
     let db_url =
         run_migrations().await.context("Failed to run database migrations")?;
 
-    let config = get_rustls_config("./.data")
-        .await
-        .context("Failed to get rustls config")?;
+    // Commented for HTTP development
+    // let config = get_rustls_config("./.data")
+    //     .await
+    //     .context("Failed to get rustls config")?;
 
     let app_state = init_app_state().await?;
 
@@ -36,10 +37,11 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .route("/health_check", get(health_check));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8081));
-    info!("listening on https://{}/", addr);
+    info!("listening on http://{}/", addr);
 
-    axum_server::bind_rustls(addr, config)
-        .serve(app.into_make_service())
+    // Use HTTP instead of HTTPS for local development
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app)
         .await
         .context("Error occurred while running server")?;
 

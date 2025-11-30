@@ -1,6 +1,7 @@
 use sea_orm::prelude::*;
 use super::prelude::*;
 use crate::domain::dto::DoctorId;
+use crate::domain::dto::user::UserId;
 use chrono::{NaiveDate, NaiveDateTime};
 
 /// Repository trait for appointment-related database operations.
@@ -26,6 +27,21 @@ pub trait AppointmentRepo {
         start_date: NaiveDate,
         end_date: NaiveDate,
     ) -> Result<Vec<(NaiveDateTime, String)>, DbErr>;
+
+    /// Create a new appointment for a patient with a doctor.
+    async fn create_appointment(
+        &self,
+        doctor_id: DoctorId,
+        patient_id: UserId,
+        date_time: NaiveDateTime,
+    ) -> Result<Ulid, DbErr>;
+
+    /// Get all appointments for a patient with doctor and specialty information.
+    /// Returns tuples of (appointment, doctor_name, specialty_name).
+    async fn get_patient_appointments(
+        &self,
+        patient_id: UserId,
+    ) -> Result<Vec<(DbCita, String, String)>, DbErr>;
 }
 
 impl AppointmentRepo for OrmDB {
@@ -96,5 +112,75 @@ impl AppointmentRepo for OrmDB {
             .into_iter()
             .map(|apt| (apt.fecha, apt.estado))
             .collect())
+    }
+
+    async fn create_appointment(
+        &self,
+        doctor_id: DoctorId,
+        patient_id: UserId,
+        date_time: NaiveDateTime,
+    ) -> Result<Ulid, DbErr> {
+        use crate::adapters::repo::prelude::cita;
+        use sea_orm::ActiveValue::Set;
+
+        let appointment_id = Ulid::new();
+
+        let new_appointment = cita::ActiveModel {
+            id: Set(appointment_id.into()),
+            doctor_id: Set(Some(doctor_id.0.into())),
+            paciente_id: Set(Some(patient_id.0.into())),
+            asegurado_id: Set(None), // Not handling insurance for now
+            fecha: Set(date_time),
+            timestamp_end: Set(None), // Will be set later
+            estado: Set("agendada".to_string()),
+        };
+
+        cita::Entity::insert(new_appointment)
+            .exec(self.connection())
+            .await?;
+
+        Ok(appointment_id)
+    }
+
+    async fn get_patient_appointments(
+        &self,
+        patient_id: UserId,
+    ) -> Result<Vec<(DbCita, String, String)>, DbErr> {
+        use crate::adapters::repo::prelude::{cita, doctor, doctor_especialidad, especialidad, patient};
+        use sea_orm::{QueryOrder, JoinType};
+
+        // Query appointments with JOINs to get doctor name and specialty
+        let appointments = cita::Entity::find()
+            .filter(cita::Column::PacienteId.eq(patient_id.0))
+            .find_also_related(doctor::Entity)
+            .order_by_desc(cita::Column::Fecha)
+            .all(self.connection())
+            .await?;
+
+        let mut result = Vec::new();
+
+        for (appointment, doctor_opt) in appointments {
+            let doctor_name = if let Some(doc) = doctor_opt {
+                // Get specialty for this doctor
+                let specialty = doctor_especialidad::Entity::find()
+                    .filter(doctor_especialidad::Column::DoctorId.eq(doc.id))
+                    .find_also_related(especialidad::Entity)
+                    .one(self.connection())
+                    .await?;
+
+                let specialty_name = specialty
+                    .and_then(|(_, esp)| esp)
+                    .map(|esp| esp.nombre)
+                    .unwrap_or_else(|| "Sin especialidad".to_string());
+
+                (doc.name, specialty_name)
+            } else {
+                ("Doctor no asignado".to_string(), "Sin especialidad".to_string())
+            };
+
+            result.push((appointment, doctor_name.0, doctor_name.1));
+        }
+
+        Ok(result)
     }
 }

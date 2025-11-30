@@ -8,10 +8,9 @@ pub fn router() -> Router<AppState> {
     Router::new().route("/specialties", get(get_specialties))
 }
 pub async fn get_specialties(
-    Query(pagination): MaybePaginated,
+    Query(pagination): Query<PaginatedReq>,
     State(app): StateApp,
 ) -> ApiResultPaged<ApiSpecialty> {
-    let pagination = pagination.unwrap_or_default();
     let specialties = app
         .get_specialties(pagination.clone())
         .await

@@ -117,6 +117,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const api = useApi()
+const { user } = useAuth()
 
 const specialtyId = computed(() => parseInt(route.params.id as string))
 
@@ -128,6 +129,7 @@ const { data, pending, error, refresh } = await useAsyncData(
 // Calendar modal state
 const showCalendar = ref(false)
 const selectedDoctorId = ref<string | null>(null)
+const bookingInProgress = ref(false)
 
 function openCalendar(doctorId: string) {
   selectedDoctorId.value = doctorId
@@ -139,11 +141,43 @@ function closeCalendar() {
   selectedDoctorId.value = null
 }
 
-function handleDateSelected(date: string) {
-  // TODO: Create appointment with the selected date
-  console.log('Date selected:', date)
-  alert(`Cita agendada para: ${date}`)
-  closeCalendar()
+async function handleDateSelected(date: string) {
+  if (!user.value?.id || !selectedDoctorId.value) {
+    alert('Error: Usuario no autenticado')
+    return
+  }
+
+  bookingInProgress.value = true
+
+  // Debug: Log what we're sending
+  console.log('Booking appointment with:', {
+    user_value: user.value,
+    patient_id: user.value.id,
+    patient_id_type: typeof user.value.id,
+    date: date
+  })
+
+  try {
+    await api.bookAppointment(selectedDoctorId.value, {
+      patient_id: user.value.id,
+      date: date
+    })
+
+    alert(`¡Cita agendada exitosamente para ${date}!`)
+    closeCalendar()
+
+    // Redirect to my appointments page
+    navigateTo('/my-appointments')
+  } catch (error: any) {
+    console.error('Error booking appointment:', error)
+    if (error.statusCode === 501) {
+      alert('⚠️ La funcionalidad de agendar citas aún no está implementada en el backend.\n\nPor favor, contacta al equipo de desarrollo.')
+    } else {
+      alert(`Error al agendar la cita: ${error.message || 'Error desconocido'}`)
+    }
+  } finally {
+    bookingInProgress.value = false
+  }
 }
 </script>
 

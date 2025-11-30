@@ -638,6 +638,7 @@ pub enum Cita {
     Fecha,
     TimestampEnd,
     Estado,
+    Hospital,
 }
 
 impl Cita {
@@ -652,6 +653,7 @@ impl Cita {
             .col(timestamp(Cita::Fecha))
             .col(timestamp_null(Cita::TimestampEnd))
             .col(string_len(Cita::Estado, 16))
+            .col(string_len_null(Cita::Hospital, 100))
             .to_owned()
     }
 

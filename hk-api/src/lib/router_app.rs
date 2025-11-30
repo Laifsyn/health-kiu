@@ -9,7 +9,7 @@ use crate::{AppState, Ulid};
 pub fn create_app(app_state: AppState) -> Router {
     let cors = CorsLayer::new()
         .allow_origin(
-            "http://localhost:5173".parse::<http::HeaderValue>().unwrap(),
+            "http://localhost:3000".parse::<http::HeaderValue>().unwrap(),
         )
         .allow_methods([http::Method::POST, http::Method::GET])
         .allow_headers([CONTENT_TYPE, AUTHORIZATION])

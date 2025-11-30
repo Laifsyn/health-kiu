@@ -53,7 +53,7 @@ export const useApi = () => {
   const fetchSpecialties = async (offset: number = 0, count: number = 20) => {
     try {
       const response = await $fetch<PagedResponse<Specialty>>(
-        `${apiBase}/api/specialties`,
+        `${apiBase}/specialty/specialties`,
         {
           params: { offset, count }
         }
@@ -68,7 +68,7 @@ export const useApi = () => {
   const fetchDoctorsBySpecialty = async (specialtyId: number, offset: number = 0, count: number = 20) => {
     try {
       const response = await $fetch<DoctorsBySpecialtyResponse>(
-        `${apiBase}/api/specialties/${specialtyId}/doctors`,
+        `${apiBase}/doctor/by_specialty/${specialtyId}`,
         {
           params: { offset, count }
         }
@@ -88,7 +88,7 @@ export const useApi = () => {
       }
 
       const response = await $fetch<AvailabilityResponse>(
-        `${apiBase}/api/doctors/${doctorId}/available-dates`,
+        `${apiBase}/doctors/${doctorId}/available-dates`,
         { params }
       )
       return response
@@ -98,9 +98,63 @@ export const useApi = () => {
     }
   }
 
+  interface PatientAppointment {
+    id: string
+    doctor_name: string
+    specialty_name: string
+    date: string      // YYYY-MM-DD
+    time: string      // HH:MM
+    hospital: string | null
+    status: string
+  }
+
+  const fetchPatientAppointments = async (patientId: string) => {
+    try {
+      const response = await $fetch<PatientAppointment[]>(
+        `${apiBase}/patients/${patientId}/appointments`
+      )
+      return response
+    } catch (error) {
+      console.error('Error fetching patient appointments:', error)
+      throw error
+    }
+  }
+
+  interface BookAppointmentRequest {
+    patient_id: string
+    date: string  // YYYY-MM-DD format
+    time?: string // HH:MM format (optional for now)
+  }
+
+  const bookAppointment = async (doctorId: string, request: BookAppointmentRequest) => {
+    try {
+      console.log('Sending POST request:', {
+        url: `${apiBase}/doctors/${doctorId}/appointments`,
+        body: request,
+        bodyJSON: JSON.stringify(request)
+      })
+      const response = await $fetch(
+        `${apiBase}/doctors/${doctorId}/appointments`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(request)
+        }
+      )
+      return response
+    } catch (error) {
+      console.error('Error booking appointment:', error)
+      throw error
+    }
+  }
+
   return {
     fetchSpecialties,
     fetchDoctorsBySpecialty,
-    fetchDoctorAvailability
+    fetchDoctorAvailability,
+    fetchPatientAppointments,
+    bookAppointment
   }
 }
