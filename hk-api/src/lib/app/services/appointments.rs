@@ -16,7 +16,7 @@ pub trait AppointmentService {
         &self,
         doctor_id: DoctorId,
         date: NaiveDate,
-    ) -> Result<bool>;
+    ) -> AppResult<bool>;
 
     /// Get available dates for a doctor within a date range (up to 30 days).
     /// Returns list of dates where doctor has availability.
@@ -25,7 +25,7 @@ pub trait AppointmentService {
         doctor_id: DoctorId,
         start_date: NaiveDate,
         end_date: NaiveDate,
-    ) -> Result<Vec<NaiveDate>>;
+    ) -> AppResult<Vec<NaiveDate>>;
 }
 
 impl AppointmentService for AppState {
@@ -33,7 +33,7 @@ impl AppointmentService for AppState {
         &self,
         doctor_id: DoctorId,
         date: NaiveDate,
-    ) -> Result<bool> {
+    ) -> AppResult<bool> {
         // Don't allow appointments on weekends
         let weekday = date.weekday();
         if weekday == chrono::Weekday::Sat || weekday == chrono::Weekday::Sun {
@@ -77,7 +77,7 @@ impl AppointmentService for AppState {
         doctor_id: DoctorId,
         start_date: NaiveDate,
         end_date: NaiveDate,
-    ) -> Result<Vec<NaiveDate>> {
+    ) -> AppResult<Vec<NaiveDate>> {
         // Limit the range to 30 days max
         let max_end = start_date + chrono::Duration::days(30);
         let end_date = if end_date > max_end { max_end } else { end_date };

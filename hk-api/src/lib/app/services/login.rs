@@ -8,13 +8,13 @@ pub trait LoginService {
         &self,
         username: &str,
         password: &[u8],
-    ) -> Result<Option<Doctor>>;
+    ) -> AppResult<Option<Doctor>>;
 
     async fn login_patient(
         &self,
         username: &str,
         password: &[u8],
-    ) -> Result<Option<Patient>>;
+    ) -> AppResult<Option<Patient>>;
 
     fn verify_password(&self, hash: &str, password: &[u8]) -> bool;
 }
@@ -28,7 +28,7 @@ impl LoginService for AppState {
         &self,
         username: &str,
         password: &[u8],
-    ) -> Result<Option<Doctor>> {
+    ) -> AppResult<Option<Doctor>> {
         let fetched_users = self.db.get_doctor_by_cedula(username).await?;
         let Some(fetched_users) = fetched_users else {
             return Ok(None);
@@ -46,7 +46,7 @@ impl LoginService for AppState {
         &self,
         username: &str,
         password: &[u8],
-    ) -> Result<Option<Patient>> {
+    ) -> AppResult<Option<Patient>> {
         let fetched_users = self.db.get_patient_by_cedula(username).await?;
         let Some(fetched_users) = fetched_users else {
             return Ok(None);

@@ -14,11 +14,11 @@ pub struct RegisterData<'a> {
 }
 
 pub trait RegisterService {
-    async fn register(&self, data: RegisterData<'_>) -> Result<Auth>;
+    async fn register(&self, data: RegisterData<'_>) -> AppResult<Auth>;
 }
 
 impl RegisterService for AppState {
-    async fn register(&self, data: RegisterData<'_>) -> Result<Auth> {
+    async fn register(&self, data: RegisterData<'_>) -> AppResult<Auth> {
         let RegisterData { role, cedula, name, password, passport } = data;
 
         match role {

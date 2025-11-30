@@ -13,7 +13,7 @@ pub(crate) use specialties::SpecialtyRepo;
 pub(crate) mod dto;
 
 /// Type alias for repository results.
-pub type Result<T, E = sea_orm::DbErr> = std::result::Result<T, E>;
+pub type AppResult<T, E = sea_orm::DbErr> = std::result::Result<T, E>;
 use crate::domain::Pagination;
 
 /// Exports repositories, and re-exports database models.
@@ -36,7 +36,7 @@ pub mod prelude {
         AppointmentRepo, DoctorRepo, PatientRepo, SpecialtyRepo,
     };
     pub use crate::Ulid;
-    pub use crate::repo::Result;
+    pub use crate::repo::AppResult;
 }
 
 use sea_orm::prelude::*;

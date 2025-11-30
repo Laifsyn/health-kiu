@@ -7,15 +7,15 @@ pub(crate) trait DoctorService {
     async fn get_doctors(
         &self,
         pagination: impl Into<Pagination>,
-    ) -> Result<Paged<Doctor>>;
+    ) -> AppResult<Paged<Doctor>>;
 
-    async fn get_doctor(&self, id: UserId) -> Result<Option<Doctor>>;
+    async fn get_doctor(&self, id: UserId) -> AppResult<Option<Doctor>>;
 
     async fn get_doctors_by_specialty(
         &self,
         specialty_id: SpecialtyId,
         pagination: impl Into<Pagination>,
-    ) -> Result<Option<(Specialty, Paged<Doctor>)>>;
+    ) -> AppResult<Option<(Specialty, Paged<Doctor>)>>;
 }
 
 impl DoctorService for AppState {
@@ -23,7 +23,7 @@ impl DoctorService for AppState {
         &self,
         specialty_id: SpecialtyId,
         pagination: impl Into<Pagination>,
-    ) -> Result<Option<(Specialty, Paged<Doctor>)>> {
+    ) -> AppResult<Option<(Specialty, Paged<Doctor>)>> {
         let pagination = pagination.into();
         let Some((db_specialty, db_doctors)) = self
             .db
@@ -50,14 +50,14 @@ impl DoctorService for AppState {
     async fn get_doctors(
         &self,
         pagination: impl Into<Pagination>,
-    ) -> Result<Paged<Doctor>> {
+    ) -> AppResult<Paged<Doctor>> {
         let pagination = pagination.into();
         let result = self.db.get_doctors(pagination.clone()).await;
         todo!()
         // Ok(Paged::new(result, pagination))
     }
 
-    async fn get_doctor(&self, id: UserId) -> Result<Option<Doctor>> {
+    async fn get_doctor(&self, id: UserId) -> AppResult<Option<Doctor>> {
         let doctor = self.db.get_doctor(id.0).await;
         // if let None = doctor {
         //     return Ok(None);

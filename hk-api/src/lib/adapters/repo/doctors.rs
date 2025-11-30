@@ -14,32 +14,32 @@ pub(crate) trait DoctorRepo {
         &self,
         specialty_id: SpecialtyId,
         pagination: Pagination,
-    ) -> Result<Option<(DbEspecialidad, Vec<DoctorUser>)>>;
+    ) -> AppResult<Option<(DbEspecialidad, Vec<DoctorUser>)>>;
 
     async fn get_doctors(
         &self,
         pagination: Pagination,
-    ) -> Result<Vec<DoctorUser>>;
+    ) -> AppResult<Vec<DoctorUser>>;
 
     async fn get_doctor(
         &self,
         id: impl Into<Ulid>,
-    ) -> Result<Option<DoctorUser>>;
+    ) -> AppResult<Option<DoctorUser>>;
 
     async fn get_appointments(
         &self,
         id: impl Into<Ulid>,
-    ) -> Result<Vec<DbCita>>;
+    ) -> AppResult<Vec<DbCita>>;
 
     async fn get_doctor_by_cedula(
         &self,
         cedula: &str,
-    ) -> Result<Option<DoctorUser>>;
+    ) -> AppResult<Option<DoctorUser>>;
 
     async fn register_doctor(
         &self,
         payload: RegisterDbDoctor,
-    ) -> Result<DoctorUser>;
+    ) -> AppResult<DoctorUser>;
 }
 
 impl DoctorRepo for OrmDB {
@@ -49,7 +49,7 @@ impl DoctorRepo for OrmDB {
         &self,
         specialty_id: SpecialtyId,
         pagination: Pagination,
-    ) -> Result<Option<(DbEspecialidad, Vec<DoctorUser>)>> {
+    ) -> AppResult<Option<(DbEspecialidad, Vec<DoctorUser>)>> {
         let results: Vec<(DbDoctor, Option<DbEspecialidad>, Option<DbUser>)> =
             self.select_paginated::<doctor::Entity>(pagination)
                 .find_also_related(especialidad::Entity)
@@ -94,7 +94,7 @@ impl DoctorRepo for OrmDB {
     async fn get_doctors(
         &self,
         pagination: Pagination,
-    ) -> Result<Vec<DoctorUser>> {
+    ) -> AppResult<Vec<DoctorUser>> {
         let doctors = self
             .select_paginated::<doctor::Entity>(pagination)
             .find_also_related(user::Entity)
@@ -109,7 +109,7 @@ impl DoctorRepo for OrmDB {
     async fn get_doctor(
         &self,
         id: impl Into<Ulid>,
-    ) -> Result<Option<DoctorUser>> {
+    ) -> AppResult<Option<DoctorUser>> {
         doctor::Entity::find_by_id(id.into())
             .find_also_related(user::Entity)
             .one(self.connection())
@@ -120,7 +120,7 @@ impl DoctorRepo for OrmDB {
     async fn get_appointments(
         &self,
         id: impl Into<Ulid>,
-    ) -> Result<Vec<DbCita>> {
+    ) -> AppResult<Vec<DbCita>> {
         cita::Entity::find()
             .find_also_related(doctor::Entity)
             .filter(cita::Column::DoctorId.eq(id.into()))
@@ -133,7 +133,7 @@ impl DoctorRepo for OrmDB {
     async fn get_doctor_by_cedula(
         &self,
         cedula: &str,
-    ) -> Result<Option<DoctorUser>> {
+    ) -> AppResult<Option<DoctorUser>> {
         doctor::Entity::find()
             .find_also_related(user::Entity)
             .filter(user::Column::Cedula.eq(cedula))
@@ -145,7 +145,7 @@ impl DoctorRepo for OrmDB {
     async fn register_doctor(
         &self,
         payload: RegisterDbDoctor,
-    ) -> Result<DoctorUser> {
+    ) -> AppResult<DoctorUser> {
         use sea_orm::ActiveValue::Set;
         let RegisterDbDoctor { name, password_hash, passport, cedula, id } =
             payload;

@@ -13,14 +13,14 @@ pub trait AppointmentRepo {
         &self,
         doctor_id: DoctorId,
         date: NaiveDate,
-    ) -> Result<u64, DbErr>;
+    ) -> AppResult<u64, DbErr>;
 
     /// Count appointments for a doctor in a given week (Monday to Friday).
     async fn count_doctor_appointments_in_week(
         &self,
         doctor_id: DoctorId,
         week_start: NaiveDate,
-    ) -> Result<u64, DbErr>;
+    ) -> AppResult<u64, DbErr>;
 
     /// Get all appointment dates for a doctor in a date range.
     async fn get_doctor_appointment_dates(
@@ -28,7 +28,7 @@ pub trait AppointmentRepo {
         doctor_id: DoctorId,
         start_date: NaiveDate,
         end_date: NaiveDate,
-    ) -> Result<Vec<(NaiveDateTime, String)>, DbErr>;
+    ) -> AppResult<Vec<(NaiveDateTime, String)>, DbErr>;
 
     /// Create a new appointment for a patient with a doctor.
     async fn create_appointment(
@@ -36,7 +36,7 @@ pub trait AppointmentRepo {
         doctor_id: DoctorId,
         patient_id: UserId,
         date_time: NaiveDateTime,
-    ) -> Result<Ulid, DbErr>;
+    ) -> AppResult<Ulid, DbErr>;
 
     /// Get all appointments for a patient with doctor and specialty
     /// information.
@@ -45,7 +45,7 @@ pub trait AppointmentRepo {
     async fn get_patient_appointments(
         &self,
         patient_id: UserId,
-    ) -> Result<Vec<(DbCita, String, String)>, DbErr>;
+    ) -> AppResult<Vec<(DbCita, String, String)>, DbErr>;
 }
 
 impl AppointmentRepo for OrmDB {
@@ -53,7 +53,7 @@ impl AppointmentRepo for OrmDB {
         &self,
         doctor_id: DoctorId,
         date: NaiveDate,
-    ) -> Result<u64, DbErr> {
+    ) -> AppResult<u64, DbErr> {
         use crate::adapters::repo::prelude::cita;
 
         // Create datetime range for the full day
@@ -73,7 +73,7 @@ impl AppointmentRepo for OrmDB {
         &self,
         doctor_id: DoctorId,
         week_start: NaiveDate,
-    ) -> Result<u64, DbErr> {
+    ) -> AppResult<u64, DbErr> {
         use chrono::Duration;
 
         use crate::adapters::repo::prelude::cita;
@@ -97,7 +97,7 @@ impl AppointmentRepo for OrmDB {
         doctor_id: DoctorId,
         start_date: NaiveDate,
         end_date: NaiveDate,
-    ) -> Result<Vec<(NaiveDateTime, String)>, DbErr> {
+    ) -> AppResult<Vec<(NaiveDateTime, String)>, DbErr> {
         use sea_orm::QueryOrder;
 
         use crate::adapters::repo::prelude::cita;
@@ -125,7 +125,7 @@ impl AppointmentRepo for OrmDB {
         doctor_id: DoctorId,
         patient_id: UserId,
         date_time: NaiveDateTime,
-    ) -> Result<Ulid, DbErr> {
+    ) -> AppResult<Ulid, DbErr> {
         use sea_orm::ActiveValue::Set;
 
         use crate::adapters::repo::prelude::cita;
@@ -150,7 +150,7 @@ impl AppointmentRepo for OrmDB {
     async fn get_patient_appointments(
         &self,
         patient_id: UserId,
-    ) -> Result<Vec<(DbCita, String, String)>, DbErr> {
+    ) -> AppResult<Vec<(DbCita, String, String)>, DbErr> {
         use sea_orm::{JoinType, QueryOrder};
 
         use crate::adapters::repo::prelude::{

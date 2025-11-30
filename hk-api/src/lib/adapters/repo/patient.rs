@@ -7,24 +7,24 @@ pub trait PatientRepo {
     async fn get_patient(
         &self,
         id: impl Into<Ulid>,
-    ) -> Result<Option<PatientUser>>;
+    ) -> AppResult<Option<PatientUser>>;
 
     async fn get_patient_by_cedula(
         &self,
         cedula: &str,
-    ) -> Result<Option<PatientUser>>;
+    ) -> AppResult<Option<PatientUser>>;
 
     async fn register_patient(
         &self,
         payload: RegisterPatientPayload,
-    ) -> Result<PatientUser>;
+    ) -> AppResult<PatientUser>;
 }
 
 impl PatientRepo for OrmDB {
     async fn get_patient(
         &self,
         id: impl Into<Ulid>,
-    ) -> Result<Option<PatientUser>> {
+    ) -> AppResult<Option<PatientUser>> {
         let patient: Option<(DbPatient, Option<DbUser>)> =
             models::patient::Entity::find()
                 .find_also_related(models::user::Entity)
@@ -38,7 +38,7 @@ impl PatientRepo for OrmDB {
     async fn get_patient_by_cedula(
         &self,
         cedula: &str,
-    ) -> Result<Option<PatientUser>> {
+    ) -> AppResult<Option<PatientUser>> {
         let patient: Option<(DbPatient, Option<DbUser>)> =
             models::patient::Entity::find()
                 .find_also_related(models::user::Entity)
@@ -52,7 +52,7 @@ impl PatientRepo for OrmDB {
     async fn register_patient(
         &self,
         payload: RegisterPatientPayload,
-    ) -> Result<PatientUser> {
+    ) -> AppResult<PatientUser> {
         use sea_orm::ActiveValue::Set;
         let RegisterPatientPayload {
             name,

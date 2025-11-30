@@ -7,7 +7,7 @@ pub trait SpecialtyRepo {
     async fn get_specialties(
         &self,
         paging: impl Into<Pagination>,
-    ) -> Result<Vec<DbEspecialidad>, DbErr>;
+    ) -> AppResult<Vec<DbEspecialidad>, DbErr>;
 }
 
 impl SpecialtyRepo for OrmDB {
@@ -15,7 +15,7 @@ impl SpecialtyRepo for OrmDB {
     async fn get_specialties(
         &self,
         paging: impl Into<Pagination>,
-    ) -> Result<Vec<DbEspecialidad>, DbErr> {
+    ) -> AppResult<Vec<DbEspecialidad>, DbErr> {
         let paging = paging.into();
         self.select_paginated::<Especialidad>(paging)
             .order_by_asc(especialidad::Column::Id)
