@@ -3,11 +3,7 @@
     <!-- CSS Panama Header -->
     <div class="css-header">
       <div class="css-logo">
-        <div class="logo-circle">
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-          </svg>
-        </div>
+        <img src="/logoCajaVirtual.webp" alt="Logo Caja de Seguro Social" class="logo-image" />
       </div>
       <h1 class="css-title">Caja de Seguro Social</h1>
       <p class="css-subtitle">República de Panamá</p>
@@ -179,16 +175,13 @@ const handleLogin = async () => {
   margin-bottom: 20px;
 }
 
-.logo-circle {
-  width: 80px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
+.logo-image {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
   margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
 
 .css-title {

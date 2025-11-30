@@ -3,6 +3,9 @@
     <!-- CSS Panama Header -->
     <header class="css-header">
       <div class="header-content">
+        <div class="logo-container">
+          <img src="/logoCajaVirtual.webp" alt="Logo CSS" class="header-logo" />
+        </div>
         <div class="hospital-info">
           <h1>Caja de Seguro Social</h1>
           <p class="hospital-location">República de Panamá</p>
@@ -48,15 +51,15 @@
           <p class="service-title">Médicos<br>Especialistas</p>
         </NuxtLink>
 
-        <div class="service-card primary">
+        <NuxtLink to="/my-appointments" class="service-card primary">
           <div class="service-icon orange">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
               <polyline points="9 11 12 14 22 4"></polyline>
             </svg>
           </div>
-          <p class="service-title">Agenda<br>del Día</p>
-        </div>
+          <p class="service-title">Mis Citas<br>Agendadas</p>
+        </NuxtLink>
 
         <div class="service-card primary">
           <div class="service-icon green">
@@ -234,6 +237,22 @@ const logout = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  gap: 12px;
+}
+
+.logo-container {
+  flex-shrink: 0;
+}
+
+.header-logo {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.hospital-info {
+  flex: 1;
 }
 
 .hospital-info h1 {
