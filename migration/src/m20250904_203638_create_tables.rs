@@ -243,7 +243,7 @@ impl Doctor {
                 None,
                 "Dr. María González",
                 "$argon2id$v=19$m=19456,t=2,p=1$KcQXe/xfSmh2PofgP9/\
-                 6DA$ypct83GJKYvIycX1A+XZEdvk3ig55007poqqwl0qeB0", // 12345678
+                 6DA$ypct83GJKYvIycX1A+XZEdvk3ig55007poqqwl0qeB0", /* 12345678 */
                 vec![1, 2], // Medicina General, Medicina Familiar
             ),
             (
@@ -251,7 +251,8 @@ impl Doctor {
                 "001-2345678-9",
                 Some("P12345678"),
                 "Dr. Carlos Rodríguez",
-                "$argon2id$v=19$m=19456,t=2,p=1$mfJGD5eIEn5q7dAKTD3DTg$GJlv3KP05+G8EftAKw+ITdBO3reFJD7Vja3WFA4Ssyk",
+                "$argon2id$v=19$m=19456,t=2,\
+                 p=1$mfJGD5eIEn5q7dAKTD3DTg$GJlv3KP05+G8EftAKw+ITdBO3reFJD7Vja3WFA4Ssyk",
                 vec![11, 3], // Cardiología, Medicina Interna
             ),
             (
@@ -259,7 +260,8 @@ impl Doctor {
                 "001-3456789-0",
                 None,
                 "Dr. Ana Martínez",
-                "$argon2id$v=19$m=19456,t=2,p=1$mwXJO7rw70+vorZqnTYnxg$jiO3dEgWdKj27NBCaSlFYrdCnNHXF07UPhrxKR2gHCs",
+                "$argon2id$v=19$m=19456,t=2,\
+                 p=1$mwXJO7rw70+vorZqnTYnxg$jiO3dEgWdKj27NBCaSlFYrdCnNHXF07UPhrxKR2gHCs",
                 vec![4, 11], // Pediatría, Cardiología
             ),
             (
@@ -276,7 +278,8 @@ impl Doctor {
                 "001-5678901-2",
                 Some("P87654321"),
                 "Dr. Carmen López",
-                "$argon2id$v=19$m=19456,t=2,p=1$5ZYJcaPMG2nK0MvBFvElXQ$OsrmX4h2NEuo+3kQs9j1jhOPCNMkjmXRarXjZCOEtKQ",
+                "$argon2id$v=19$m=19456,t=2,\
+                 p=1$5ZYJcaPMG2nK0MvBFvElXQ$OsrmX4h2NEuo+3kQs9j1jhOPCNMkjmXRarXjZCOEtKQ",
                 vec![6, 20], // Ginecología y Obstetricia, Dermatología
             ),
         ];

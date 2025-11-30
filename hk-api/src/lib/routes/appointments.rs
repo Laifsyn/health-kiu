@@ -1,15 +1,15 @@
+use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
-use axum::Json;
-use serde::{Deserialize, Serialize};
 use chrono::{Datelike, NaiveDate};
-use sea_orm::prelude::Uuid;
 use models::Ulid;
+use sea_orm::prelude::Uuid;
+use serde::{Deserialize, Serialize};
 
 use crate::app::services::appointments::AppointmentService;
 use crate::domain::dto::DoctorId;
-use crate::routes::prelude::StateApp;
 use crate::repo::prelude::AppointmentRepo;
+use crate::routes::prelude::StateApp;
 
 /// Query parameters for available dates endpoint
 #[derive(Debug, Deserialize)]
@@ -34,15 +34,15 @@ impl Default for AvailabilityQuery {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DateStatus {
-    Available,   // Doctor has availability (< 5 appointments)
-    Full,        // Doctor has 5 appointments already
-    Weekend,     // Saturday or Sunday
+    Available, // Doctor has availability (< 5 appointments)
+    Full,      // Doctor has 5 appointments already
+    Weekend,   // Saturday or Sunday
 }
 
 /// Information about a specific date's availability
 #[derive(Debug, Serialize)]
 pub struct DateAvailability {
-    pub date: String,           // YYYY-MM-DD format
+    pub date: String, // YYYY-MM-DD format
     pub status: DateStatus,
     pub appointments_count: u64, // Current number of appointments
     pub max_appointments: u64,   // Maximum allowed (5)
@@ -60,21 +60,24 @@ pub struct AvailableDatesResponse {
 /// GET /api/doctors/{doctor_id}/available-dates
 ///
 /// Returns availability status for all dates in the range.
-/// Shows available (< 5 appointments), full (5 appointments), or weekend status.
+/// Shows available (< 5 appointments), full (5 appointments), or weekend
+/// status.
 pub async fn get_available_dates(
     Path(doctor_id): Path<String>,
     Query(query): Query<AvailabilityQuery>,
     State(app): StateApp,
 ) -> Result<Json<AvailableDatesResponse>, (StatusCode, String)> {
     // Parse doctor ID
-    let doctor_uuid = Uuid::parse_str(&doctor_id)
-        .map_err(|e| (StatusCode::BAD_REQUEST, format!("Invalid doctor ID: {}", e)))?;
+    let doctor_uuid = Uuid::parse_str(&doctor_id).map_err(|e| {
+        (StatusCode::BAD_REQUEST, format!("Invalid doctor ID: {}", e))
+    })?;
     let doctor_id_domain: DoctorId = doctor_uuid.into();
 
     // Parse start date or use today
     let start_date = if let Some(date_str) = &query.start_date {
-        NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
-            .map_err(|e| (StatusCode::BAD_REQUEST, format!("Invalid date format: {}", e)))?
+        NaiveDate::parse_from_str(date_str, "%Y-%m-%d").map_err(|e| {
+            (StatusCode::BAD_REQUEST, format!("Invalid date format: {}", e))
+        })?
     } else {
         chrono::Local::now().date_naive()
     };
@@ -91,27 +94,32 @@ pub async fn get_available_dates(
         let weekday = current_date.weekday();
 
         // Check if weekend
-        let status = if weekday == chrono::Weekday::Sat || weekday == chrono::Weekday::Sun {
+        let status = if weekday == chrono::Weekday::Sat
+            || weekday == chrono::Weekday::Sun
+        {
             DateStatus::Weekend
         } else {
             // Get appointment count for this date
-            let count = app.db()
-                .count_doctor_appointments_on_date(doctor_id_domain.clone(), current_date)
+            let count = app
+                .db()
+                .count_doctor_appointments_on_date(
+                    doctor_id_domain.clone(),
+                    current_date,
+                )
                 .await
                 .unwrap_or(0); // Default to 0 if there's an error
 
-            if count >= 5 {
-                DateStatus::Full
-            } else {
-                DateStatus::Available
-            }
+            if count >= 5 { DateStatus::Full } else { DateStatus::Available }
         };
 
         let appointments_count = if matches!(status, DateStatus::Weekend) {
             0
         } else {
             app.db()
-                .count_doctor_appointments_on_date(doctor_id_domain.clone(), current_date)
+                .count_doctor_appointments_on_date(
+                    doctor_id_domain.clone(),
+                    current_date,
+                )
                 .await
                 .unwrap_or(0)
         };
@@ -138,7 +146,7 @@ pub async fn get_available_dates(
 #[derive(Debug, Deserialize)]
 pub struct BookAppointmentRequest {
     pub patient_id: String,
-    pub date: String, // YYYY-MM-DD format
+    pub date: String,         // YYYY-MM-DD format
     pub time: Option<String>, // HH:MM format (optional for now)
 }
 
@@ -163,34 +171,43 @@ pub async fn book_appointment(
 ) -> Result<Json<BookAppointmentResponse>, (StatusCode, String)> {
     use crate::domain::dto::user::UserId;
 
-    tracing::info!("book_appointment handler called with doctor_id={}, request={:?}", doctor_id, request);
+    tracing::info!(
+        "book_appointment handler called with doctor_id={}, request={:?}",
+        doctor_id,
+        request
+    );
 
     // 1. Parse and validate doctor ID
     tracing::info!("Step 1: Parsing doctor_id: {}", doctor_id);
-    let doctor_uuid = Uuid::parse_str(&doctor_id)
-        .map_err(|e| {
-            tracing::error!("Failed to parse doctor_id: {}", e);
-            (StatusCode::BAD_REQUEST, format!("Invalid doctor ID: {}", e))
-        })?;
+    let doctor_uuid = Uuid::parse_str(&doctor_id).map_err(|e| {
+        tracing::error!("Failed to parse doctor_id: {}", e);
+        (StatusCode::BAD_REQUEST, format!("Invalid doctor ID: {}", e))
+    })?;
     tracing::info!("Step 1: Successfully parsed doctor_uuid: {}", doctor_uuid);
     let doctor_id_domain: DoctorId = doctor_uuid.into();
 
     // 2. Parse and validate patient ID (ULID format)
     tracing::info!("Step 2: Parsing patient_id: {}", request.patient_id);
-    let patient_ulid = Ulid::try_from(request.patient_id.as_str())
-        .map_err(|e| {
+    let patient_ulid =
+        Ulid::try_from(request.patient_id.as_str()).map_err(|e| {
             tracing::error!("Failed to parse patient_id as ULID: {}", e);
             (StatusCode::BAD_REQUEST, format!("Invalid patient ID: {}", e))
         })?;
-    tracing::info!("Step 2: Successfully parsed patient_ulid: {}", patient_ulid);
+    tracing::info!(
+        "Step 2: Successfully parsed patient_ulid: {}",
+        patient_ulid
+    );
     let patient_id_domain = UserId::from_inner(patient_ulid);
 
     // 3. Parse date (YYYY-MM-DD format)
     tracing::info!("Step 3: Parsing date: {}", request.date);
-    let date = NaiveDate::parse_from_str(&request.date, "%Y-%m-%d")
-        .map_err(|e| {
+    let date =
+        NaiveDate::parse_from_str(&request.date, "%Y-%m-%d").map_err(|e| {
             tracing::error!("Failed to parse date: {}", e);
-            (StatusCode::BAD_REQUEST, format!("Invalid date format (use YYYY-MM-DD): {}", e))
+            (
+                StatusCode::BAD_REQUEST,
+                format!("Invalid date format (use YYYY-MM-DD): {}", e),
+            )
         })?;
     tracing::info!("Step 3: Successfully parsed date: {}", date);
 
@@ -205,11 +222,10 @@ pub async fn book_appointment(
         (9, 0)
     };
 
-    let date_time = date.and_hms_opt(hour, minute, 0)
-        .ok_or_else(|| {
-            tracing::error!("Invalid time: {}:{}", hour, minute);
-            (StatusCode::BAD_REQUEST, "Invalid time".to_string())
-        })?;
+    let date_time = date.and_hms_opt(hour, minute, 0).ok_or_else(|| {
+        tracing::error!("Invalid time: {}:{}", hour, minute);
+        (StatusCode::BAD_REQUEST, "Invalid time".to_string())
+    })?;
     tracing::info!("Step 3: Created date_time: {}", date_time);
 
     // 4. Check if date is a weekend
@@ -217,34 +233,48 @@ pub async fn book_appointment(
     let weekday = date.weekday();
     if weekday == chrono::Weekday::Sat || weekday == chrono::Weekday::Sun {
         tracing::warn!("Rejected: weekend booking attempt");
-        return Err((StatusCode::BAD_REQUEST, "Cannot book appointments on weekends".to_string()));
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "Cannot book appointments on weekends".to_string(),
+        ));
     }
     tracing::info!("Step 4: Not a weekend, continuing");
 
     // 5. Check availability (max 5 appointments per day per doctor)
     tracing::info!("Step 5: Checking availability");
-    let appointments_count = app.db()
+    let appointments_count = app
+        .db()
         .count_doctor_appointments_on_date(doctor_id_domain.clone(), date)
         .await
         .map_err(|e| {
             tracing::error!("Database error checking availability: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e))
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Database error: {}", e),
+            )
         })?;
     tracing::info!("Step 5: Current appointments: {}/5", appointments_count);
 
     if appointments_count >= 5 {
         tracing::warn!("Rejected: doctor fully booked");
-        return Err((StatusCode::CONFLICT, "Doctor is fully booked for this date".to_string()));
+        return Err((
+            StatusCode::CONFLICT,
+            "Doctor is fully booked for this date".to_string(),
+        ));
     }
 
     // 6. Create appointment in database
     tracing::info!("Step 6: Creating appointment");
-    let appointment_id = app.db()
+    let appointment_id = app
+        .db()
         .create_appointment(doctor_id_domain, patient_id_domain, date_time)
         .await
         .map_err(|e| {
             tracing::error!("Failed to create appointment: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to create appointment: {}", e))
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to create appointment: {}", e),
+            )
         })?;
     tracing::info!("Step 6: Created appointment with ID: {}", appointment_id);
 
@@ -264,15 +294,16 @@ pub struct PatientAppointment {
     pub id: String,
     pub doctor_name: String,
     pub specialty_name: String,
-    pub date: String,      // YYYY-MM-DD
-    pub time: String,      // HH:MM
+    pub date: String, // YYYY-MM-DD
+    pub time: String, // HH:MM
     pub hospital: Option<String>,
     pub status: String,
 }
 
 /// GET /api/patients/{patient_id}/appointments
 ///
-/// Returns all appointments for a specific patient with doctor and specialty details.
+/// Returns all appointments for a specific patient with doctor and specialty
+/// details.
 pub async fn get_patient_appointments(
     Path(patient_id): Path<String>,
     State(app): StateApp,
@@ -280,15 +311,21 @@ pub async fn get_patient_appointments(
     use crate::domain::dto::user::UserId;
 
     // 1. Parse and validate patient ID (ULID format)
-    let patient_ulid = Ulid::try_from(patient_id.as_str())
-        .map_err(|e| (StatusCode::BAD_REQUEST, format!("Invalid patient ID: {}", e)))?;
+    let patient_ulid = Ulid::try_from(patient_id.as_str()).map_err(|e| {
+        (StatusCode::BAD_REQUEST, format!("Invalid patient ID: {}", e))
+    })?;
     let patient_id_domain = UserId::from_inner(patient_ulid);
 
     // 2. Query database for all appointments with doctor and specialty info
-    let appointments = app.db()
-        .get_patient_appointments(patient_id_domain)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Database error: {}", e)))?;
+    let appointments =
+        app.db().get_patient_appointments(patient_id_domain).await.map_err(
+            |e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Database error: {}", e),
+                )
+            },
+        )?;
 
     // 3. Format appointments for response
     let response: Vec<PatientAppointment> = appointments

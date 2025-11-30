@@ -95,9 +95,7 @@ impl AppState {
     }
 
     /// Returns a reference to the database for repository operations.
-    pub fn db(&self) -> &OrmDB {
-        &self.db
-    }
+    pub fn db(&self) -> &OrmDB { &self.db }
 }
 
 #[cfg(test)]

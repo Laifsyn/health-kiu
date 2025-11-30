@@ -1,12 +1,14 @@
+use chrono::{NaiveDate, NaiveDateTime};
 use sea_orm::prelude::*;
+
 use super::prelude::*;
 use crate::domain::dto::DoctorId;
 use crate::domain::dto::user::UserId;
-use chrono::{NaiveDate, NaiveDateTime};
 
 /// Repository trait for appointment-related database operations.
 pub trait AppointmentRepo {
-    /// Count appointments for a doctor on a specific date (start of day to end of day).
+    /// Count appointments for a doctor on a specific date (start of day to end
+    /// of day).
     async fn count_doctor_appointments_on_date(
         &self,
         doctor_id: DoctorId,
@@ -36,7 +38,9 @@ pub trait AppointmentRepo {
         date_time: NaiveDateTime,
     ) -> Result<Ulid, DbErr>;
 
-    /// Get all appointments for a patient with doctor and specialty information.
+    /// Get all appointments for a patient with doctor and specialty
+    /// information.
+    ///
     /// Returns tuples of (appointment, doctor_name, specialty_name).
     async fn get_patient_appointments(
         &self,
@@ -70,8 +74,9 @@ impl AppointmentRepo for OrmDB {
         doctor_id: DoctorId,
         week_start: NaiveDate,
     ) -> Result<u64, DbErr> {
-        use crate::adapters::repo::prelude::cita;
         use chrono::Duration;
+
+        use crate::adapters::repo::prelude::cita;
 
         // Week is Monday to Friday (5 days)
         let week_end = week_start + Duration::days(4);
@@ -93,8 +98,9 @@ impl AppointmentRepo for OrmDB {
         start_date: NaiveDate,
         end_date: NaiveDate,
     ) -> Result<Vec<(NaiveDateTime, String)>, DbErr> {
-        use crate::adapters::repo::prelude::cita;
         use sea_orm::QueryOrder;
+
+        use crate::adapters::repo::prelude::cita;
 
         let start_dt = start_date.and_hms_opt(0, 0, 0).unwrap();
         let end_dt = end_date.and_hms_opt(23, 59, 59).unwrap();
@@ -120,8 +126,9 @@ impl AppointmentRepo for OrmDB {
         patient_id: UserId,
         date_time: NaiveDateTime,
     ) -> Result<Ulid, DbErr> {
-        use crate::adapters::repo::prelude::cita;
         use sea_orm::ActiveValue::Set;
+
+        use crate::adapters::repo::prelude::cita;
 
         let appointment_id = Ulid::new();
 
@@ -135,9 +142,7 @@ impl AppointmentRepo for OrmDB {
             estado: Set("agendada".to_string()),
         };
 
-        cita::Entity::insert(new_appointment)
-            .exec(self.connection())
-            .await?;
+        cita::Entity::insert(new_appointment).exec(self.connection()).await?;
 
         Ok(appointment_id)
     }
@@ -146,8 +151,11 @@ impl AppointmentRepo for OrmDB {
         &self,
         patient_id: UserId,
     ) -> Result<Vec<(DbCita, String, String)>, DbErr> {
-        use crate::adapters::repo::prelude::{cita, doctor, doctor_especialidad, especialidad, patient};
-        use sea_orm::{QueryOrder, JoinType};
+        use sea_orm::{JoinType, QueryOrder};
+
+        use crate::adapters::repo::prelude::{
+            cita, doctor, doctor_especialidad, especialidad, patient,
+        };
 
         // Query appointments with JOINs to get doctor name and specialty
         let appointments = cita::Entity::find()
@@ -175,7 +183,10 @@ impl AppointmentRepo for OrmDB {
 
                 (doc.name, specialty_name)
             } else {
-                ("Doctor no asignado".to_string(), "Sin especialidad".to_string())
+                (
+                    "Doctor no asignado".to_string(),
+                    "Sin especialidad".to_string(),
+                )
             };
 
             result.push((appointment, doctor_name.0, doctor_name.1));

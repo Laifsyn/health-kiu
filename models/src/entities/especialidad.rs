@@ -20,15 +20,14 @@ pub enum Relation {
 }
 
 impl Related<super::doctor_especialidad::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::DoctorEspecialidad.def()
-    }
+    fn to() -> RelationDef { Relation::DoctorEspecialidad.def() }
 }
 
 impl Related<super::doctor::Entity> for Entity {
     fn to() -> RelationDef {
         super::doctor_especialidad::Relation::Doctor.def()
     }
+
     fn via() -> Option<RelationDef> {
         Some(super::doctor_especialidad::Relation::Especialidad.def().rev())
     }

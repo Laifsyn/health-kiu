@@ -34,6 +34,7 @@ pub async fn login_doctor(
 
     Ok(Json(ApiUserId::Doctor(doctor.id.into())))
 }
+
 #[instrument(skip(state, credentials), level = "debug", fields(cedula = %credentials.0.username()),name="login_patient")]
 pub async fn login_patient(
     TypedHeader(credentials): TypedHeader<Authorization<Basic>>,

@@ -11,8 +11,8 @@ use hk_api::create_app;
 use tracing::info;
 
 mod migrator_main;
-use hk_api::tls::get_rustls_config;
 use hk_api::AppState;
+use hk_api::tls::get_rustls_config;
 pub use migrator_main::main as run_migrations;
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]

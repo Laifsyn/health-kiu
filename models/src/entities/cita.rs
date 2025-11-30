@@ -44,21 +44,15 @@ pub enum Relation {
 }
 
 impl Related<super::asegurado::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Asegurado.def()
-    }
+    fn to() -> RelationDef { Relation::Asegurado.def() }
 }
 
 impl Related<super::doctor::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Doctor.def()
-    }
+    fn to() -> RelationDef { Relation::Doctor.def() }
 }
 
 impl Related<super::patient::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Patient.def()
-    }
+    fn to() -> RelationDef { Relation::Patient.def() }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

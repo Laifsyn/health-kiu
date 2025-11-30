@@ -31,15 +31,11 @@ pub enum Relation {
 }
 
 impl Related<super::cita::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Cita.def()
-    }
+    fn to() -> RelationDef { Relation::Cita.def() }
 }
 
 impl Related<super::patient::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Patient.def()
-    }
+    fn to() -> RelationDef { Relation::Patient.def() }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

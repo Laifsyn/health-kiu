@@ -1,5 +1,6 @@
-use super::prelude::*;
 use chrono::{Datelike, NaiveDate};
+
+use super::prelude::*;
 
 /// Maximum appointments per doctor per day
 const MAX_APPOINTMENTS_PER_DAY: u64 = 5;
@@ -87,9 +88,14 @@ impl AppointmentService for AppState {
         while current_date <= end_date {
             // Only check weekdays
             let weekday = current_date.weekday();
-            if weekday != chrono::Weekday::Sat && weekday != chrono::Weekday::Sun {
+            if weekday != chrono::Weekday::Sat
+                && weekday != chrono::Weekday::Sun
+            {
                 if self
-                    .is_doctor_available_on_date(doctor_id.clone(), current_date)
+                    .is_doctor_available_on_date(
+                        doctor_id.clone(),
+                        current_date,
+                    )
                     .await?
                 {
                     available_dates.push(current_date);

@@ -11,9 +11,7 @@ impl MigrationTrait for Migration {
                 Table::alter()
                     .table(Cita::Table)
                     .add_column_if_not_exists(
-                        ColumnDef::new(Cita::TimestampEnd)
-                            .timestamp()
-                            .null()
+                        ColumnDef::new(Cita::TimestampEnd).timestamp().null(),
                     )
                     .to_owned(),
             )

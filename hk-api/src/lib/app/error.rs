@@ -65,7 +65,7 @@ where
 }
 
 #[derive(Debug, thiserror::Error)]
-/// Error Kinds for [`ServiceError`]
+/// Error Kinds for [`AppError`]
 pub enum ErrorKind {
     #[error("Not Found")]
     NotFound,

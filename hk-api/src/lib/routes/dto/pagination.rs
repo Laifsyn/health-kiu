@@ -139,6 +139,7 @@ impl<T> PagedResp<T> {
         }
     }
 
+    /// Wraps the response in an [`axum::Json`] type.
     pub const fn json(self) -> axum::Json<Self> { axum::Json(self) }
 }
 

@@ -1,7 +1,6 @@
 //!
 //! It provides an abstraction over all database operations (if not most).
 
-mod appointment;
 mod appointments;
 mod doctors;
 mod patient;
@@ -33,7 +32,9 @@ pub mod prelude {
 
     pub use super::OrmDB;
     pub(super) use super::dto::*;
-    pub(crate) use super::{AppointmentRepo, DoctorRepo, PatientRepo, SpecialtyRepo};
+    pub(crate) use super::{
+        AppointmentRepo, DoctorRepo, PatientRepo, SpecialtyRepo,
+    };
     pub use crate::Ulid;
     pub use crate::repo::Result;
 }

@@ -30,27 +30,22 @@ pub enum Relation {
 }
 
 impl Related<super::cita::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Cita.def()
-    }
+    fn to() -> RelationDef { Relation::Cita.def() }
 }
 
 impl Related<super::doctor_especialidad::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::DoctorEspecialidad.def()
-    }
+    fn to() -> RelationDef { Relation::DoctorEspecialidad.def() }
 }
 
 impl Related<super::user::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::User.def()
-    }
+    fn to() -> RelationDef { Relation::User.def() }
 }
 
 impl Related<super::especialidad::Entity> for Entity {
     fn to() -> RelationDef {
         super::doctor_especialidad::Relation::Especialidad.def()
     }
+
     fn via() -> Option<RelationDef> {
         Some(super::doctor_especialidad::Relation::Doctor.def().rev())
     }
