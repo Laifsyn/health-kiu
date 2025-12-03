@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use dotenvy::{dotenv, from_filename};
+use dotenvy::{dotenv, dotenv_override, from_filename};
 
 pub fn init_env() -> Option<&'static Path> {
     pub static ENV_INITIALIZED: std::sync::OnceLock<Option<PathBuf>> =
@@ -10,7 +10,7 @@ pub fn init_env() -> Option<&'static Path> {
             if cfg!(debug_assertions) {
                 from_filename(".env.development").ok();
             }
-            dotenv().ok()
+            dotenv_override().ok()
         })
         .as_deref()
 }
