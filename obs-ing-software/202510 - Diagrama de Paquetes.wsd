@@ -1,0 +1,156 @@
+@startuml Health-KIU API Class Diagram
+skinparam backgroundColor #ffffffff
+skinparam classBackgroundColor #F8F9FA
+skinparam classBorderColor #3b90dbff
+
+package "Interfaz Gráfica" {
+    package App {
+
+        package Routes {
+
+
+        }
+
+        package Composables {
+
+
+        }
+
+        package Components {
+
+
+        }
+
+        package Pages {
+
+
+        }
+    }
+    package Assets {
+
+
+    }
+
+}
+
+package "Servidor API" as ApiServer {
+    package "ApiEndpoints" as ApiLayer {
+        package Handlers {
+        }
+
+        package Dto {
+        }
+        note as DtoNote
+        Utilizados para la comunicación entre <Cliente y Servidor> y
+        <Rutas y Servicios(Aplicación)>. Contienen definiciones
+        para convertir los requests entrantes a objetos reconocidos
+        por la Aplicación, y para convertir las respuestas
+        de la Aplicación a respuestas HTTP.
+        end note
+
+        package Errors {}
+    }
+    note as ApiLayerNote
+    Maneja las solicitudes HTTP entrantes,
+    mapeándolas a los servicios correspondientes.
+    Actúa como la capa de presentación del backend.
+    end note
+    ApiLayer .left. ApiLayerNote
+    ApiLayer.Dto .. ApiLayer.DtoNote
+
+
+    package "ServicesInterface" as Services {
+    }
+    note as ServicesNote
+    Contiene un contrato de comunicación entre
+    los Handlers y la Aplicación.
+    end note
+    Services .left. ServicesNote
+
+    package "Adaptadores" as Adapters {
+
+        Package Repositorios as Repositories {}
+        note as RepositoriesNote
+        Contiene las implementaciones de los repositorios
+        que interactúan con la base de datos.
+        Pueden ser interpretados comos los casos de usos
+        de la base de datos.
+        end note
+        Repositories .. RepositoriesNote
+        Package Password {}
+    }
+    note as AdaptersNote
+    Actúa como un puente entre la lógica
+    de negocio y la capa de infraestructura.
+    end note
+    Adapters .up. AdaptersNote
+
+
+    Package "Application" as App {
+        Package "Application's Services" as AppServices{
+            Package "AuthService" as AppAuthService {}
+            Package "UserService" as AppUserService {}
+            Package "DoctorService" as AppDoctorService {}
+            Package "AdminService" as AppAdminService {}
+            Package "NotificationService" as AppNotificationService {}
+        }
+        note as AppServicesNote
+        Contiene los servicios principales de la
+        aplicación, encapsulando la lógica de negocio.
+        Puede ser interpretado como los casos de usos de la capa API.
+        end note
+        AppServices .. AppServicesNote
+
+        Package "Error" as AppError {}
+        note as AppErrorNote
+        Contiene los diferentes errores que
+        pueden ser generados por la aplicación.
+        end note
+        AppError .. AppErrorNote
+    }
+    note as AppNote
+    Orquesta la lógica de negocio, coordinando las interacciones
+    entre los diferentes servicios del sistema.
+    end note
+    App .up. AppNote
+
+    App -left-> Adapters : <<depends on>>
+    ApiLayer --> App : <<depends on>>
+    App -up-> Services : <<depends on>>
+
+}
+
+package "Infraestructura" as Infrastructure {
+    Package Database {
+        Package Models {}
+        note as DbModelsNote
+        Contiene las definiciones de los modelos de datos
+        utilizados para interactuar con la base de datos.
+        Estructurados como una traducción directa de las tablas
+        devueltas por la base de datos.
+        end note
+        Models .. DbModelsNote
+
+
+        Package Migrations {}
+        note as MigrationsNote
+        Contiene la lógica que gestiona el estado
+        básico de la base de datos.
+        end note
+        Migrations .left. MigrationsNote
+    }
+
+    Package "Crypto" as Crypto {}
+    note as CryptoNote
+    Contiene utilidades relacionadas con operaciones
+    criptográficas, como el hashing de contraseñas.
+    end note
+    Crypto .. CryptoNote
+
+    Package "HttpServer" as HttpServer {}
+}
+
+ApiServer --> Infrastructure : <<uses>>
+
+"Interfaz Gráfica" --> ApiServer.ApiLayer : <<Communicates>>
+@enduml
