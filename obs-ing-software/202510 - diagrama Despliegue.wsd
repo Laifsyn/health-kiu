@@ -1,0 +1,44 @@
+@startuml Health-KIU API Class Diagram
+skinparam backgroundColor #ffffffff
+skinparam classBackgroundColor #F8F9FA
+skinparam classBorderColor #3b90dbff
+
+Title Diagrama de Despliegue - Health Kiu
+
+Node "Dispositivo del Paciente" as PatientDevice {
+    component "Interfaz para el Paciente"
+}
+Node "Dispositivo del Médico" as DoctorDevice {
+    component "Interfaz para el Médico"
+}
+
+cloud "HTTPs over Internet" as InternetCloud
+
+node "Caja de Seguro Social" as SocialSecurityBox {
+    Node "Servidor API" as ApiServer {
+        component "Capa API" as ApiComponent
+        component "Servicios" as Service
+    }
+
+    database "Base de Datos" as Database
+
+    Node "Dispositivos del Administrativo" as AdminDevices {
+        component "Interfaz para Administración"
+    }
+
+    cloud "LAN Interna" as InternalLAN
+    note as AdminDevicesNote
+    Dispositivos utilizados por el personal administrativo
+    end note
+    AdminDevices .. AdminDevicesNote
+    
+    Database <--> InternalLAN
+    AdminDevices <--> InternalLAN 
+    Service <--> InternalLAN
+}
+
+PatientDevice <-down-> InternetCloud
+DoctorDevice <-down-> InternetCloud
+InternetCloud <-down-> ApiComponent
+
+@enduml
